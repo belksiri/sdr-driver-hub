@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>DEXT</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<!-- Numero compile dans CE dext (BRTL_BUILD_ID) : l'app le compare a celui
+	     que le dext CHARGE renvoie par son user client. -->
+	<key>BRTLBuildId</key>
+	<string>$(BRTL_BUILD_ID)</string>
+	<key>OSBundleUsageDescription</key>
+	<string>EXPERIMENTAL - DEVELOPMENT ONLY. Permet a Belksiri Spectrum de recevoir des echantillons IQ depuis un recepteur RTL-SDR (RTL2832U) raccorde en USB. Reception seule : l'ecriture de l'EEPROM est refusee par le pilote.</string>
+
+	<key>IOKitPersonalities</key>
+	<dict>
+		<!-- 0x0BDA = 3034 (Realtek) ; 0x2838 = 10296, 0x2832 = 10290. -->
+		<key>BelksiriRtlSdrDriver2838</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleIdentifierKernel</key>
+			<string>com.apple.kpi.iokit</string>
+			<key>IOClass</key>
+			<string>IOUserService</string>
+			<key>IOUserClass</key>
+			<string>BelksiriRtlSdrDriver</string>
+			<key>IOUserServerName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>IOMatchCategory</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBHostDevice</string>
+			<key>idVendor</key>
+			<integer>3034</integer>
+			<key>idProduct</key>
+			<integer>10296</integer>
+			<key>IOProbeScore</key>
+			<integer>100000</integer>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>BelksiriRtlSdrUserClient</string>
+			</dict>
+		</dict>
+		<key>BelksiriRtlSdrDriver2832</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleIdentifierKernel</key>
+			<string>com.apple.kpi.iokit</string>
+			<key>IOClass</key>
+			<string>IOUserService</string>
+			<key>IOUserClass</key>
+			<string>BelksiriRtlSdrDriver</string>
+			<key>IOUserServerName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>IOMatchCategory</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBHostDevice</string>
+			<key>idVendor</key>
+			<integer>3034</integer>
+			<key>idProduct</key>
+			<integer>10290</integer>
+			<key>IOProbeScore</key>
+			<integer>100000</integer>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>BelksiriRtlSdrUserClient</string>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

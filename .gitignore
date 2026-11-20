@@ -1,0 +1,4 @@
+build/
+SDRDriverHub.xcodeproj/
+HubCore/.build/
+.DS_Store

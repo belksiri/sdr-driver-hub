@@ -1,0 +1,2 @@
+# librtlsdr is kept byte-for-byte as upstream (osmocom): no whitespace checks.
+Controller/librtlsdr/** -whitespace

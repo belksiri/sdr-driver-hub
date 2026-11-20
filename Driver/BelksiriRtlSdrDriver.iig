@@ -1,0 +1,93 @@
+/*
+ * BelksiriRtlSdrDriver.iig — Déclaration du pilote RTL-SDR (prototype).
+ *
+ * EXPERIMENTAL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
+ *
+ * Matching sur l'IOUSBHostDevice RTL2832U (0x0BDA:0x2838 et 0x0BDA:0x2832).
+ * Le pilote prend possession de l'appareil et de son interface 0 et n'ouvre
+ * QUE le pipe bulk IN 0x81 (réception seule). Les requêtes de contrôle
+ * passent par la liste blanche brtl_policy, qui refuse notamment toute
+ * écriture de données dans l'EEPROM avant qu'elle n'atteigne le bus.
+ *
+ * Même protocole de user client que BelksiriHackRFDriver (bhrf_shared.h) ;
+ * méthodes LOCALONLY appelées par le user client dans le même processus.
+ */
+
+#ifndef BelksiriRtlSdrDriver_h
+#define BelksiriRtlSdrDriver_h
+
+#include <DriverKit/IOService.iig>
+#include <DriverKit/IOMemoryDescriptor.iig>
+#include <DriverKit/OSAction.iig>
+// Apporte IOUSBHostPipe::CompleteAsyncIO, dont la signature sert de TYPE à la
+// complétion asynchrone déclarée plus bas.
+#include <USBDriverKit/IOUSBHostPipe.iig>
+
+struct BHRFProtocolInfo;
+struct BHRFControlRequest;
+struct BHRFControlResponse;
+struct BHRFRingStats;
+struct BHRFStartRxRequest;
+struct BHRFSimpleStatus;
+
+class BelksiriRtlSdrDriver: public IOService
+{
+public:
+    virtual bool init(void) override;
+    virtual void free(void) override;
+
+    virtual kern_return_t Start(IOService * provider) override;
+    virtual kern_return_t Stop(IOService * provider) override;
+
+    virtual kern_return_t NewUserClient(uint32_t type,
+                                        IOUserClient ** userClient) override;
+
+    /* ── Surface offerte au user client (même processus, appels directs) ── */
+
+    /* Renvoie la version du protocole ET bcdDevice. Ce second champ n'est pas
+     * un confort : hackrf_usb_api_version_read le lit dans le descripteur de
+     * périphérique, auquel une application iPadOS n'a aucun accès. Sans cette
+     * remontée, l'application ne pourrait pas vérifier la version d'API USB du
+     * firmware — donc pas refuser un firmware non validé. */
+    virtual kern_return_t RtlGetProtocolInfo(BHRFProtocolInfo * outInfo) LOCALONLY;
+
+    /* Applique la liste blanche PUIS, seulement si elle autorise, émet la
+     * requête sur le bus. L'ordre est le tout : sur un refus, ioReturn reste 0,
+     * ce qui est la preuve qu'aucun transfert n'a été tenté. */
+    virtual kern_return_t RtlControlRequest(const BHRFControlRequest * req,
+                                               BHRFControlResponse * resp) LOCALONLY;
+
+    virtual kern_return_t RtlGetRingStats(BHRFRingStats * outStats) LOCALONLY;
+
+    /* ── Étape 5 : réception continue ────────────────────────────────────── */
+
+    /* Alloue le ring si besoin, puis amorce `buffersInFlight` transferts
+     * AsyncIO sur le pipe bulk IN. Le ring est alloué UNE fois et survit à un
+     * stop/start : l'application peut garder son mappage entre deux campagnes. */
+    virtual kern_return_t RtlStartRx(const BHRFStartRxRequest * req,
+                                        BHRFSimpleStatus * outStatus) LOCALONLY;
+
+    virtual kern_return_t RtlStopRx(BHRFSimpleStatus * outStatus) LOCALONLY;
+
+    /* Remet le descripteur du ring au user client, qui le renvoie à
+     * IOConnectMapMemory64. Une référence est consommée par l'appelant. */
+    virtual kern_return_t RtlCopyRingMemory(IOMemoryDescriptor ** outMemory) LOCALONLY;
+
+    /* Interne. Déclarée ici parce qu'`iig` exige que toute méthode de la classe
+     * figure dans le .iig, même celle qui ne traverse aucune frontière. */
+    virtual kern_return_t RtlAllocateRingIfNeeded(uint32_t blockBytes) LOCALONLY;
+
+    /* Complétion d'un transfert bulk IN. Elle s'exécute sur la file de
+     * répartition par défaut du service, jamais sur le thread appelant : à
+     * 20 Msps elle est invoquée environ 160 fois par seconde, et tout ce qui
+     * s'y trouve est sur le chemin critique. Elle ne fait donc que trois
+     * choses — publier les métadonnées du bloc, publier writeIndex, et
+     * resoumettre le transfert suivant. Aucune allocation, aucune copie. */
+    virtual void ReadComplete(OSAction * action,
+                              IOReturn   status,
+                              uint32_t   actualByteCount,
+                              uint64_t   completionTimestamp)
+        TYPE(IOUSBHostPipe::CompleteAsyncIO);
+};
+
+#endif /* BelksiriRtlSdrDriver_h */

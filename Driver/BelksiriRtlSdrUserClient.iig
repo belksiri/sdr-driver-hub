@@ -1,0 +1,42 @@
+/*
+ * BelksiriRtlSdrUserClient.iig — Le point d'entrée des applications.
+ *
+ * Le user client ne contient AUCUNE règle de sécurité : il désérialise, délègue
+ * au pilote, resérialise. La liste blanche vit dans bhrf_policy.c, un seul
+ * endroit, testable sur hôte. Un filtre dupliqué entre le user client et le
+ * pilote finirait par diverger, et c'est exactement la divergence qui crée un
+ * trou.
+ */
+
+#ifndef BelksiriRtlSdrUserClient_h
+#define BelksiriRtlSdrUserClient_h
+
+#include <DriverKit/IOUserClient.iig>
+#include <DriverKit/IOMemoryDescriptor.iig>
+
+class BelksiriRtlSdrUserClient: public IOUserClient
+{
+public:
+    virtual bool init(void) override;
+    virtual void free(void) override;
+
+    virtual kern_return_t Start(IOService * provider) override;
+    virtual kern_return_t Stop(IOService * provider) override;
+
+    virtual kern_return_t ExternalMethod(
+        uint64_t                            selector,
+        IOUserClientMethodArguments       * arguments,
+        const IOUserClientMethodDispatch  * dispatch,
+        OSObject                          * target,
+        void                              * reference) override;
+
+    /* Appelée par IOConnectMapMemory64 côté application. Le user client ne
+     * décide rien : il vérifie le type demandé et délègue au pilote, seul
+     * propriétaire du ring. */
+    virtual kern_return_t CopyClientMemoryForType(
+        uint64_t              type,
+        uint64_t            * options,
+        IOMemoryDescriptor ** memory) override;
+};
+
+#endif /* BelksiriRtlSdrUserClient_h */
