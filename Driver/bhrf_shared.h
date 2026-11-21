@@ -1,5 +1,12 @@
 /*
- * bhrf_shared.h — Contrat partagé entre le pilote DriverKit et les applications.
+ * bhrf_shared.h — Contrat partagé entre le pilote DriverKit et l'application
+ * SDR Driver Hub (préfixe historique « bhrf » : Belksiri hardware RF).
+ *
+ * Protocole de user client GÉNÉRIQUE, indépendant du matériel : identité du
+ * pilote, requête de contrôle filtrée par la liste blanche PROPRE à chaque
+ * pilote, ring partagé de blocs IQ, démarrage et arrêt de la réception. Aucune
+ * valeur propre à un équipement ici : le pilote RTL-SDR porte les siennes
+ * (brtl_identity.h, brtl_policy.h).
  *
  * Ce fichier est compilé dans TROIS contextes différents, et c'est la raison de
  * toutes ses contraintes de style :
@@ -39,76 +46,12 @@ extern "C" {
 /* 'B','H','R','F' relus comme un uint32 little-endian. */
 #define BHRF_RING_MAGIC 0x46524842u
 
-/* ──────────────────────────── Identité matérielle ───────────────────────── */
-/* Relevés dans android/native/third_party/hackrf/hackrf.c lignes 186-189
- * (libhackrf v2024.02.1, commit 18b485e3b6d2031c15a79ba89cdb42b5fa245f24).
- * Le VID appartient à OpenMoko, qui a sous-attribué le PID 0x6089 au HackRF One
- * de Great Scott Gadgets. Le prototype ne cible QUE ce couple : ni le Jawbreaker
- * (0x604B) ni le rad1o (0xCC15), qui ne seront pas testés. */
-#define BHRF_USB_VENDOR_ID  0x1D50u /* 7504  */
-#define BHRF_USB_PRODUCT_ID 0x6089u /* 24713 */
-
-/* Endpoints, relevés dans hackrf.c lignes 112-113 :
- *   RX_ENDPOINT_ADDRESS (LIBUSB_ENDPOINT_IN  | 1) = 0x81
- *   TX_ENDPOINT_ADDRESS (LIBUSB_ENDPOINT_OUT | 2) = 0x02
- * Le pilote n'ouvre JAMAIS 0x02. C'est l'une des deux barrières qui rendent
- * l'écriture du CPLD impossible (voir BHRF_TRANSCEIVER_MODE_CPLD_UPDATE). */
-#define BHRF_BULK_IN_ENDPOINT  0x81u
-#define BHRF_BULK_OUT_ENDPOINT 0x02u /* défini pour être explicitement refusé */
-
-/* ─────────────────── Requêtes vendor HackRF (valeurs relevées) ───────────── */
-/* Copiées depuis l'enum `hackrf_vendor_request` de hackrf.c (lignes 61-108).
- * NE PAS les corriger de mémoire : plusieurs listes publiques circulant en ligne
- * donnent des valeurs fausses (BOARD_ID_READ à 13 au lieu de 14,
- * SAMPLE_RATE_SET à 23 au lieu de 6, SPIFLASH_ERASE à 6 au lieu de 10…).
- * En cas de doute, relire le fichier vendored, pas Internet. */
-#define BHRF_VR_SET_TRANSCEIVER_MODE          1u
-#define BHRF_VR_MAX2837_WRITE                 2u
-#define BHRF_VR_MAX2837_READ                  3u
-#define BHRF_VR_SI5351C_WRITE                 4u
-#define BHRF_VR_SI5351C_READ                  5u
-#define BHRF_VR_SAMPLE_RATE_SET               6u
-#define BHRF_VR_BASEBAND_FILTER_BANDWIDTH_SET 7u
-#define BHRF_VR_RFFC5071_WRITE                8u
-#define BHRF_VR_RFFC5071_READ                 9u
-#define BHRF_VR_SPIFLASH_ERASE                10u
-#define BHRF_VR_SPIFLASH_WRITE                11u
-#define BHRF_VR_SPIFLASH_READ                 12u
-#define BHRF_VR_BOARD_ID_READ                 14u
-#define BHRF_VR_VERSION_STRING_READ           15u
-#define BHRF_VR_SET_FREQ                      16u
-#define BHRF_VR_AMP_ENABLE                    17u
-#define BHRF_VR_BOARD_PARTID_SERIALNO_READ    18u
-#define BHRF_VR_SET_LNA_GAIN                  19u
-#define BHRF_VR_SET_VGA_GAIN                  20u
-#define BHRF_VR_SET_TXVGA_GAIN                21u
-#define BHRF_VR_ANTENNA_ENABLE                23u
-#define BHRF_VR_SET_FREQ_EXPLICIT             24u
-#define BHRF_VR_RESET                         30u
-#define BHRF_VR_SPIFLASH_STATUS               33u
-#define BHRF_VR_SPIFLASH_CLEAR_STATUS         34u
-#define BHRF_VR_CPLD_CHECKSUM                 36u
-#define BHRF_VR_BOARD_REV_READ                45u
-#define BHRF_VR_SUPPORTED_PLATFORM_READ       46u
-#define BHRF_VR_SET_LEDS                      47u
-#define BHRF_VR_SET_USER_BIAS_T_OPTS          48u
-
-/* Modes transceiver, relevés dans l'enum `hackrf_transceiver_mode`
- * (hackrf.c lignes 115-121). Seuls OFF et RECEIVE sont autorisés. */
-#define BHRF_TRANSCEIVER_MODE_OFF         0u
-#define BHRF_TRANSCEIVER_MODE_RECEIVE     1u
-#define BHRF_TRANSCEIVER_MODE_TRANSMIT    2u
-#define BHRF_TRANSCEIVER_MODE_SS          3u
-#define BHRF_TRANSCEIVER_MODE_CPLD_UPDATE 4u
-#define BHRF_TRANSCEIVER_MODE_RX_SWEEP    5u
-
 /* ─────────────────────────── Sélecteurs user client ─────────────────────── */
 
 enum {
-    /* Premier appel obligatoire. Renvoie aussi bcdDevice, que l'application ne
-     * peut pas obtenir seule : hackrf_usb_api_version_read (hackrf.c:1386) le lit
-     * dans le DESCRIPTEUR de périphérique, auquel une app iPadOS n'a pas accès.
-     * C'est donc au pilote de le fournir. */
+    /* Premier appel obligatoire. Renvoie aussi l'identité USB (bcdDevice,
+     * idVendor, idProduct), lue dans le DESCRIPTEUR de périphérique, auquel une
+     * app iPadOS n'a pas accès : c'est donc au pilote de la fournir. */
     kBHRFSelProtocolVersion = 0,
 
     /* Requête de contrôle vendor, filtrée par la liste blanche. */
@@ -151,23 +94,10 @@ typedef enum {
     kBHRFStatusProtocolMismatch    = 11
 } BHRFStatus;
 
-/* Motif exact d'un refus. Existe pour que la démonstration de sécurité soit
- * lisible : « refusé » sans motif ne prouve rien à un évaluateur Apple. */
-typedef enum {
-    kBHRFDenyNone = 0,
-    kBHRFDenyUnknownRequest       = 1,  /* bRequest hors liste blanche          */
-    kBHRFDenyTransmitMode         = 2,  /* SET_TRANSCEIVER_MODE = TRANSMIT      */
-    kBHRFDenyCpldUpdateMode       = 3,  /* SET_TRANSCEIVER_MODE = CPLD_UPDATE   */
-    kBHRFDenyUnsupportedMode      = 4,  /* SS (3), RX_SWEEP (5)                 */
-    kBHRFDenyFlashAccess          = 5,  /* SPIFLASH_* , CPLD_CHECKSUM           */
-    kBHRFDenyTxGain               = 6,  /* SET_TXVGA_GAIN                       */
-    kBHRFDenyChipRegisterAccess   = 7,  /* MAX2837 / SI5351C / RFFC5071         */
-    kBHRFDenyDeviceReset          = 8,  /* RESET                                */
-    kBHRFDenyPrivacy              = 9,  /* BOARD_PARTID_SERIALNO_READ           */
-    kBHRFDenyNotVendorRequest     = 10, /* bmRequestType n'est pas vendor/device*/
-    kBHRFDenyLengthTooLarge       = 11, /* wLength > BHRF_CTRL_MAX_DATA         */
-    kBHRFDenyWriteNotAllowed      = 12  /* sens hôte→appareil sur une lecture   */
-} BHRFDenyReason;
+/* Motif exact d'un refus : `BHRFControlResponse.denyReason` porte la valeur
+ * de l'énumération PROPRE au pilote qui a refusé (pilote RTL-SDR :
+ * BRTLDenyReason, brtl_policy.h). 0 signifie toujours « aucun refus ». */
+#define BHRF_DENY_NONE 0u
 
 /* État du périphérique, tel que publié par le pilote. */
 typedef enum {
@@ -179,11 +109,9 @@ typedef enum {
 
 /* ───────────────────────────── Structures ───────────────────────────────── */
 
-/* Charge utile maximale d'une requête de contrôle. La plus longue requête
- * autorisée est VERSION_STRING_READ (chaîne de version du firmware) ; 64 octets
- * couvrent largement toutes les requêtes de la liste blanche. Une requête qui
- * demanderait davantage est refusée (kBHRFDenyLengthTooLarge) plutôt que
- * tronquée silencieusement. */
+/* Charge utile maximale d'une requête de contrôle : 64 octets couvrent toutes
+ * les requêtes des listes blanches. Une requête qui demanderait davantage est
+ * refusée par le pilote plutôt que tronquée silencieusement. */
 #define BHRF_CTRL_MAX_DATA 64u
 
 #pragma pack(push, 1)
@@ -212,7 +140,7 @@ typedef struct BHRFControlResponse {
     int32_t  ioReturn;      /* kern_return_t de la couche USB.                  */
                             /* TOUJOURS 0 sur un refus : la preuve qu'aucun     */
                             /* transfert n'a été tenté.                         */
-    uint32_t denyReason;    /* BHRFDenyReason                                   */
+    uint32_t denyReason;    /* motif propre au pilote (BRTLDenyReason…)         */
     uint16_t actualLength;
     uint16_t reserved0;
     uint8_t  data[BHRF_CTRL_MAX_DATA];
@@ -320,7 +248,7 @@ typedef struct BHRFRingHeader {
  * soit multiple de 8 pour que l'adresse le soit. Ce static_assert en fait une
  * garantie du contrat plutôt qu'une coïncidence de disposition : ajouter un
  * champ de 4 octets avant writeIndex casserait la compilation, et non le
- * comportement en production à 20 Msps. */
+ * comportement en production. */
 #define BHRF_ASSERT_ALIGNED8(field) \
     ((offsetof(BHRFRingHeader, field) % 8u) == 0u)
 

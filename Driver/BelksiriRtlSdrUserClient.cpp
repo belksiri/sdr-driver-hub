@@ -6,6 +6,16 @@
  * correspond pas exactement est une erreur, jamais une tolérance : deux côtés
  * qui ne s'accordent pas sur la disposition d'une structure doivent s'arrêter,
  * pas interpréter des octets au hasard.
+ *
+ * Protocole client v2 (brtl_client_protocol.h) :
+ *   • au premier appel, les entitlements du processus client sont vérifiés
+ *     (communicates-with-drivers ET équipe du pilote) ; un client refusé ne
+ *     reçoit plus que kIOReturnNotPermitted ;
+ *   • la requête USB brute (kBHRFSelControlRequest) est refusée à tous ;
+ *   • tout ce qui agit sur la radio ou le ring passe par le contrôle de
+ *     propriété du pilote ;
+ *   • l'arrêt du user client (fermeture, plantage, fin du client) est signalé
+ *     au pilote, qui arrête alors la réception si ce client la possédait.
  */
 
 #include <os/log.h>
@@ -15,7 +25,13 @@
 #include <DriverKit/IOUserClient.h>
 #include <DriverKit/OSData.h>
 
+#include <DriverKit/OSDictionary.h>
+#include <DriverKit/OSString.h>
+#include <DriverKit/OSBoolean.h>
+
 #include "bhrf_shared.h"
+#include "brtl_client_policy.h"
+#include "brtl_client_protocol.h"
 
 #include "BelksiriRtlSdrDriver.h"
 #include "BelksiriRtlSdrUserClient.h"
@@ -24,7 +40,44 @@
 
 struct BelksiriRtlSdrUserClient_IVars {
     BelksiriRtlSdrDriver *driver;
+    bool authChecked;
+    bool authorized;
 };
+
+extern "C" const char *brtl_expected_team(void);
+
+/* Vérifie, une fois, les entitlements du processus client. */
+static bool brtl_uc_authorize(BelksiriRtlSdrUserClient *uc,
+                              BelksiriRtlSdrUserClient_IVars *iv)
+{
+    if (iv->authChecked) return iv->authorized;
+    iv->authChecked = true;
+
+    OSDictionary *ent = nullptr;
+    int comm = 0;
+    char team[32] = {};
+    const kern_return_t r = uc->CopyClientEntitlements(&ent);
+    if (r == kIOReturnSuccess && ent != nullptr) {
+        comm = ent->getObject("com.apple.developer.driverkit.communicates-with-drivers")
+                   == kOSBooleanTrue;
+        OSString *t = OSDynamicCast(OSString,
+                                    ent->getObject("com.apple.developer.team-identifier"));
+        if (t != nullptr) {
+            const char *src = t->getCStringNoCopy();
+            size_t i = 0;
+            for (; src != nullptr && src[i] != 0 && i + 1 < sizeof team; i++) team[i] = src[i];
+            team[i] = 0;
+        }
+        ent->release();
+    }
+    const BRTLClientStatus st = brtl_client_authorize(comm, team[0] ? team : nullptr,
+                                                      brtl_expected_team());
+    iv->authorized = st == kBRTLClientOK;
+    BRTL_UC_LOG("client %s (entitlements 0x%x, communicates-with-drivers=%d, équipe %s)",
+                iv->authorized ? "AUTORISÉ" : "REFUSÉ", r, comm,
+                team[0] ? (iv->authorized ? "conforme" : "différente") : "absente");
+    return iv->authorized;
+}
 
 bool BelksiriRtlSdrUserClient::init(void)
 {
@@ -66,6 +119,11 @@ kern_return_t
 IMPL(BelksiriRtlSdrUserClient, Stop)
 {
     if (ivars != nullptr) {
+        /* AVANT de relâcher le pilote : s'il possédait la radio, ce client
+         * part sans Release, et c'est au pilote d'arrêter la réception. */
+        if (ivars->driver != nullptr) {
+            ivars->driver->RtlClientGone(this);
+        }
         OSSafeReleaseNULL(ivars->driver);
     }
     BRTL_UC_LOG("Stop");
@@ -121,6 +179,9 @@ kern_return_t BelksiriRtlSdrUserClient::ExternalMethod(
     if (arguments == nullptr) {
         return kIOReturnBadArgument;
     }
+    if (!brtl_uc_authorize(this, ivars)) {
+        return kIOReturnNotPermitted;
+    }
 
     switch (selector) {
 
@@ -133,22 +194,12 @@ kern_return_t BelksiriRtlSdrUserClient::ExternalMethod(
         return bhrf_emit(arguments, &info, sizeof(info));
     }
 
-    case kBHRFSelControlRequest: {
-        const void *in = bhrf_input(arguments, sizeof(BHRFControlRequest));
-        if (in == nullptr) {
-            BRTL_UC_LOG("ControlRequest: entrée absente ou de taille inattendue");
-            return kIOReturnBadArgument;
-        }
-        BHRFControlRequest req;
-        memcpy(&req, in, sizeof(req));
-
-        BHRFControlResponse resp = {};
-        kern_return_t ret = ivars->driver->RtlControlRequest(&req, &resp);
-        if (ret != kIOReturnSuccess) {
-            return ret;
-        }
-        return bhrf_emit(arguments, &resp, sizeof(resp));
-    }
+    /* v2 : seul le pilote parle au bus (librtlsdr y est compilée). Une
+     * requête USB brute n'est acceptée d'AUCUN client. */
+    case kBHRFSelControlRequest:
+        ivars->driver->RtlNoteRawControlDenied();
+        BRTL_UC_LOG("ControlRequest : requête USB brute REFUSÉE (protocole v2)");
+        return kIOReturnNotPermitted;
 
     case kBHRFSelRingStats: {
         BHRFRingStats stats = {};
@@ -165,6 +216,11 @@ kern_return_t BelksiriRtlSdrUserClient::ExternalMethod(
      * CopyClientMemoryForType ci-dessous. Séparer les deux permet à
      * l'application de connaître blockCount et blockBytes avant de mapper. */
     case kBHRFSelMapRing: {
+        if (ivars->driver->RtlCheckOwner(this) != kIOReturnSuccess) {
+            BHRFSimpleStatus st = {};
+            st.status = (int32_t)BRTL_BHRF_STATUS_NOT_OWNER;
+            return bhrf_emit(arguments, &st, sizeof(st));
+        }
         BHRFRingStats stats = {};
         kern_return_t ret = ivars->driver->RtlGetRingStats(&stats);
         if (ret != kIOReturnSuccess) {
@@ -187,7 +243,7 @@ kern_return_t BelksiriRtlSdrUserClient::ExternalMethod(
         memcpy(&req, in, sizeof(req));
 
         BHRFSimpleStatus st = {};
-        kern_return_t ret = ivars->driver->RtlStartRx(&req, &st);
+        kern_return_t ret = ivars->driver->RtlOwnerStartRx(this, &req, &st);
         if (ret != kIOReturnSuccess) {
             return ret;
         }
@@ -196,11 +252,46 @@ kern_return_t BelksiriRtlSdrUserClient::ExternalMethod(
 
     case kBHRFSelStopRx: {
         BHRFSimpleStatus st = {};
-        kern_return_t ret = ivars->driver->RtlStopRx(&st);
+        kern_return_t ret = ivars->driver->RtlOwnerStopRx(this, &st);
         if (ret != kIOReturnSuccess) {
             return ret;
         }
         return bhrf_emit(arguments, &st, sizeof(st));
+    }
+
+    case kBRTLSelAcquire: {
+        BRTLClientResult r = {};
+        kern_return_t ret = ivars->driver->RtlAcquire(this, &r);
+        if (ret != kIOReturnSuccess) return ret;
+        return bhrf_emit(arguments, &r, sizeof(r));
+    }
+
+    case kBRTLSelRelease: {
+        BRTLClientResult r = {};
+        kern_return_t ret = ivars->driver->RtlRelease(this, &r);
+        if (ret != kIOReturnSuccess) return ret;
+        return bhrf_emit(arguments, &r, sizeof(r));
+    }
+
+    case kBRTLSelCommand: {
+        const void *in = bhrf_input(arguments, sizeof(BRTLCommand));
+        if (in == nullptr) {
+            BRTL_UC_LOG("Command : entrée absente ou de taille inattendue");
+            return kIOReturnBadArgument;
+        }
+        BRTLCommand cmd;
+        memcpy(&cmd, in, sizeof(cmd));
+        BRTLClientResult r = {};
+        kern_return_t ret = ivars->driver->RtlCommand(this, &cmd, &r);
+        if (ret != kIOReturnSuccess) return ret;
+        return bhrf_emit(arguments, &r, sizeof(r));
+    }
+
+    case kBRTLSelDeviceInfo: {
+        BRTLDeviceInfo info = {};
+        kern_return_t ret = ivars->driver->RtlGetDeviceInfo(this, &info);
+        if (ret != kIOReturnSuccess) return ret;
+        return bhrf_emit(arguments, &info, sizeof(info));
     }
 
     default:
@@ -225,6 +316,12 @@ IMPL(BelksiriRtlSdrUserClient, CopyClientMemoryForType)
 {
     if (ivars == nullptr || ivars->driver == nullptr) {
         return kIOReturnNotAttached;
+    }
+    if (!brtl_uc_authorize(this, ivars) ||
+        ivars->driver->RtlCheckOwner(this) != kIOReturnSuccess) {
+        BRTL_UC_LOG("CopyClientMemoryForType : refusé — le ring est réservé au "
+                    "propriétaire de la radio");
+        return kIOReturnNotPermitted;
     }
     if (type != kBHRFMemoryTypeRing) {
         BRTL_UC_LOG("CopyClientMemoryForType: type %llu inconnu", type);

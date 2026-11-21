@@ -15,15 +15,18 @@
 	<key>CFBundlePackageType</key>
 	<string>DEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<!-- Format des versions d'extension (MAJ ≤ 9999 . min ≤ 99 . rév ≤ 99) :
+	     un numéro de build daté y serait invalide et le système refuserait
+	     de lancer le pilote. Le numéro de build croissant est celui de l'app. -->
+	<string>$(MARKETING_VERSION)</string>
 	<!-- Numero compile dans CE dext (BRTL_BUILD_ID) : l'app le compare a celui
 	     que le dext CHARGE renvoie par son user client. -->
 	<key>BRTLBuildId</key>
 	<string>$(BRTL_BUILD_ID)</string>
 	<key>OSBundleUsageDescription</key>
-	<string>EXPERIMENTAL - DEVELOPMENT ONLY. Permet a Belksiri Spectrum de recevoir des echantillons IQ depuis un recepteur RTL-SDR (RTL2832U) raccorde en USB. Reception seule : l'ecriture de l'EEPROM est refusee par le pilote.</string>
+	<string>Allows SDR Driver Hub to receive IQ samples from an RTL-SDR receiver (RTL2832U) connected over USB. Receive only: the driver refuses any write to the device EEPROM.</string>
 
 	<key>IOKitPersonalities</key>
 	<dict>

@@ -1,7 +1,5 @@
 /*
- * BelksiriRtlSdrDriver.iig — Déclaration du pilote RTL-SDR (prototype).
- *
- * EXPERIMENTAL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
+ * BelksiriRtlSdrDriver.iig — Déclaration du pilote RTL-SDR de SDR Driver Hub.
  *
  * Matching sur l'IOUSBHostDevice RTL2832U (0x0BDA:0x2838 et 0x0BDA:0x2832).
  * Le pilote prend possession de l'appareil et de son interface 0 et n'ouvre
@@ -9,8 +7,12 @@
  * passent par la liste blanche brtl_policy, qui refuse notamment toute
  * écriture de données dans l'EEPROM avant qu'elle n'atteigne le bus.
  *
- * Même protocole de user client que BelksiriHackRFDriver (bhrf_shared.h) ;
- * méthodes LOCALONLY appelées par le user client dans le même processus.
+ * Protocole de user client commun de SDR Driver Hub (bhrf_shared.h), prolongé
+ * par le protocole client v2 (brtl_client_protocol.h) : le pilote règle
+ * lui-même le RTL2832U et le tuner (librtlsdr compilée dans le dext), arbitre
+ * un client propriétaire unique, et arrête la réception quand ce client
+ * disparaît. Méthodes LOCALONLY appelées par le user client dans le même
+ * processus ; celles qui touchent la radio prennent le verrou du pilote.
  */
 
 #ifndef BelksiriRtlSdrDriver_h
@@ -29,6 +31,9 @@ struct BHRFControlResponse;
 struct BHRFRingStats;
 struct BHRFStartRxRequest;
 struct BHRFSimpleStatus;
+struct BRTLCommand;
+struct BRTLClientResult;
+struct BRTLDeviceInfo;
 
 class BelksiriRtlSdrDriver: public IOService
 {
@@ -45,7 +50,7 @@ public:
     /* ── Surface offerte au user client (même processus, appels directs) ── */
 
     /* Renvoie la version du protocole ET bcdDevice. Ce second champ n'est pas
-     * un confort : hackrf_usb_api_version_read le lit dans le descripteur de
+     * un confort : l'identité USB se lit dans le descripteur de
      * périphérique, auquel une application iPadOS n'a aucun accès. Sans cette
      * remontée, l'application ne pourrait pas vérifier la version d'API USB du
      * firmware — donc pas refuser un firmware non validé. */
@@ -64,10 +69,31 @@ public:
     /* Alloue le ring si besoin, puis amorce `buffersInFlight` transferts
      * AsyncIO sur le pipe bulk IN. Le ring est alloué UNE fois et survit à un
      * stop/start : l'application peut garder son mappage entre deux campagnes. */
+    /* RtlStartRx / RtlStopRx supposent le verrou du pilote DÉJÀ pris : les
+     * clients passent par RtlOwnerStartRx / RtlOwnerStopRx. */
     virtual kern_return_t RtlStartRx(const BHRFStartRxRequest * req,
                                         BHRFSimpleStatus * outStatus) LOCALONLY;
 
     virtual kern_return_t RtlStopRx(BHRFSimpleStatus * outStatus) LOCALONLY;
+
+    /* ── Protocole client v2 (brtl_client_protocol.h) ─────────────────────
+     * `client` est le user client appelant : c'est le jeton de propriété. */
+    virtual kern_return_t RtlAcquire(OSObject * client, BRTLClientResult * out) LOCALONLY;
+    virtual kern_return_t RtlRelease(OSObject * client, BRTLClientResult * out) LOCALONLY;
+    virtual kern_return_t RtlCommand(OSObject * client, const BRTLCommand * cmd,
+                                     BRTLClientResult * out) LOCALONLY;
+    virtual kern_return_t RtlGetDeviceInfo(OSObject * client, BRTLDeviceInfo * out) LOCALONLY;
+    virtual kern_return_t RtlOwnerStartRx(OSObject * client, const BHRFStartRxRequest * req,
+                                          BHRFSimpleStatus * outStatus) LOCALONLY;
+    virtual kern_return_t RtlOwnerStopRx(OSObject * client, BHRFSimpleStatus * outStatus) LOCALONLY;
+    /* kIOReturnSuccess si `client` possède la radio, kIOReturnNotPermitted sinon. */
+    virtual kern_return_t RtlCheckOwner(OSObject * client) LOCALONLY;
+    /* Le user client s'arrête (fermeture, plantage ou fin du client). */
+    virtual kern_return_t RtlClientGone(OSObject * client) LOCALONLY;
+    /* Une requête USB brute a été refusée au client (compteur). */
+    virtual kern_return_t RtlNoteRawControlDenied(void) LOCALONLY;
+    /* Interne : ouvre librtlsdr sur le bus du pilote si besoin (verrou pris). */
+    virtual kern_return_t RtlEnsureControllerLocked(void) LOCALONLY;
 
     /* Remet le descripteur du ring au user client, qui le renvoie à
      * IOConnectMapMemory64. Une référence est consommée par l'appelant. */

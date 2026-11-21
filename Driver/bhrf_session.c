@@ -1,6 +1,6 @@
 #include "bhrf_session.h"
 #include "bhrf_shared.h"
-#include "bhrf_requests.h"
+#include "bhrf_diagnostics.h"
 
 void bhrf_session_init(BHRFSession *s)
 {

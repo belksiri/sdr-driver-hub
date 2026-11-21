@@ -1,22 +1,27 @@
 /*
  * BelksiriRtlSdrDriver.cpp — Pilote DriverKit générique pour RTL-SDR (RTL2832U).
  *
- * EXPERIMENTAL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
+ * Pilote de SDR Driver Hub. Il ouvre l'appareil, applique la liste blanche
+ * (brtl_policy) à CHAQUE requête de contrôle, et dépose le flux bulk IN dans
+ * le ring partagé (bhrf_shared.h).
  *
- * Couche A du prototype : notre code, sans aucun algorithme RTL2832U/R82xx.
- * Il ouvre l'appareil, applique la liste blanche (brtl_policy) à chaque
- * requête de contrôle, et dépose le flux bulk IN dans le ring partagé, avec
- * le même protocole de user client que BelksiriHackRFDriver (bhrf_shared.h).
- * La programmation du démodulateur et du tuner se fait dans l'application,
- * par librtlsdr (GPL), à travers ce pilote.
+ * Protocole client v2 (brtl_client_protocol.h) : la programmation du
+ * démodulateur et du tuner se fait ICI, par librtlsdr (GPL-2.0-or-later,
+ * Controller/) compilée dans le dext. Ses transferts de contrôle passent par
+ * brtl_bus puis par la même porte RtlControlRequest que tout le reste : la
+ * liste blanche s'applique aussi à librtlsdr. Les applications clientes
+ * (Spectrum Analyzer One, SDR Driver Hub) n'envoient que des commandes de
+ * haut niveau ; aucune requête USB brute n'est acceptée d'elles.
  *
- * Dérivé de BelksiriHackRFDriver.cpp (notre code) : même séquence de
- * démarrage, même ring zéro-copie, même gestion Stop / Abort / ClearStall.
- * Le binaire est distinct : aucun code n'est partagé à l'exécution avec le
- * pilote HackRF.
+ * Séquence de démarrage, ring zéro-copie et gestion Stop / Abort /
+ * ClearStall reprises de notre pilote DriverKit précédent (même auteur). Aucune
+ * valeur ni requête propre à un autre équipement n'y subsiste.
  */
 
 #include <os/log.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/IOUserClient.h>
@@ -30,10 +35,14 @@
 
 #include "bhrf_shared.h"
 #include "bhrf_ring_geometry.h"
-#include "bhrf_requests.h"
+#include "bhrf_diagnostics.h"
 #include "bhrf_session.h"
 #include "brtl_identity.h"
 #include "brtl_policy.h"
+#include "brtl_bus.h"
+#include "brtl_client_policy.h"
+#include "brtl_client_protocol.h"
+#include "brtl_rtl_controller.h"
 
 #include "BelksiriRtlSdrDriver.h"
 #include "BelksiriRtlSdrUserClient.h"
@@ -53,12 +62,70 @@
 #define BRTL_BUILD_ID 0u
 #endif
 
+/* Équipe dont les clients sont acceptés (DEVELOPMENT_TEAM du projet). Un
+ * pilote construit sans elle refuse tout client (brtl_client_authorize). */
+#define BRTL_STR2(x) #x
+#define BRTL_STR(x) BRTL_STR2(x)
+#ifdef BRTL_TEAM_ID
+static const char *const kBrtlExpectedTeam = BRTL_STR(BRTL_TEAM_ID);
+#else
+static const char *const kBrtlExpectedTeam = "";
+#endif
+
+/* Réglages appliqués à l'ouverture du contrôleur, ceux de rtl_tcp. */
+#define BRTL_DEFAULT_RATE_HZ 2048000u
+#define BRTL_DEFAULT_FREQ_HZ 100000000u
+
+/* Messages de librtlsdr (fprintf redirigé par dkcompat/brtl_dk_prefix.h). */
+extern "C" int brtl_dk_log(const char *format, ...)
+{
+    char buf[256];
+    va_list ap;
+    va_start(ap, format);
+    const int n = vsnprintf(buf, sizeof buf, format, ap);
+    va_end(ap);
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) buf[--len] = 0;
+    if (len > 0) {
+        os_log(OS_LOG_DEFAULT, "BRTL-LIB: %{public}s", buf);
+    }
+    return n;
+}
+
+/* Allocateur de librtlsdr (dkcompat/brtl_dk_prefix.h). IOFree exige la taille
+ * allouée : elle est rangée dans un en-tête de 16 octets (alignement conservé). */
+namespace {
+constexpr size_t kBrtlAllocHeader = 16;
+}
+
+extern "C" void *brtl_dk_calloc(size_t count, size_t size)
+{
+    if (count != 0 && size > (SIZE_MAX - kBrtlAllocHeader) / count) return nullptr;
+    const size_t n = count * size;
+    auto *base = static_cast<uint8_t *>(IOMallocZero(n + kBrtlAllocHeader));
+    if (base == nullptr) return nullptr;
+    *reinterpret_cast<size_t *>(base) = n;
+    return base + kBrtlAllocHeader;
+}
+
+extern "C" void *brtl_dk_malloc(size_t size) { return brtl_dk_calloc(1, size); }
+
+extern "C" void brtl_dk_free(void *ptr)
+{
+    if (ptr == nullptr) return;
+    uint8_t *base = static_cast<uint8_t *>(ptr) - kBrtlAllocHeader;
+    IOFree(base, *reinterpret_cast<size_t *>(base) + kBrtlAllocHeader);
+}
+
+/* Équipe et entitlement du client : voir BelksiriRtlSdrUserClient. */
+extern "C" const char *brtl_expected_team(void) { return kBrtlExpectedTeam; }
+
 /* Endpoint bulk IN des échantillons du RTL2832U. */
 #define BRTL_BULK_IN_ENDPOINT 0x81u
 
 /* Délai maximal d'un transfert bulk IN.
  *
- * Zéro — « sans délai » — a été essayé et retiré : quand le HackRF repasse en
+ * Zéro — « sans délai » — a été essayé et retiré : quand le périphérique repasse en
  * mode OFF, l'endpoint cesse d'émettre et les transferts en vol ne reviennent
  * JAMAIS. Le pipe restait alors bloqué avec des transferts fantômes, et il
  * fallait débrancher.
@@ -136,7 +203,48 @@ struct BelksiriRtlSdrDriver_IVars {
     uint64_t controlAllowed;
     uint64_t controlDenied;
     uint64_t controlUsbErrors;
+
+    /* ── Protocole client v2 ──────────────────────────────────────────────
+     * Tout ce qui suit est protégé par `lock` : plusieurs user clients (donc
+     * plusieurs files) peuvent appeler le pilote en même temps, et librtlsdr
+     * n'est pas réentrante. La complétion bulk (ReadComplete) ne le prend
+     * jamais : elle ne touche ni au contrôleur ni à la propriété. */
+    IOLock         *lock;
+    brtl_bus        bus;
+    brtl_ctrl      *ctrl;
+    brtl_device_info devInfo;
+    int32_t         tunerStatus;      /* brtl_status de la dernière ouverture */
+    brtl_ownership  own;
+
+    uint32_t frequencyHz;
+    uint32_t sampleRateHz;
+    int32_t  gainTenthDb;             /* dernier gain manuel demandé          */
+    int32_t  appliedGainTenthDb;      /* −1 : automatique                     */
+    bool     manualGain;
+    bool     rtlAgc;
+    bool     biasTee;
+    bool     offsetTuning;
+    uint32_t directSampling;
+    int32_t  ppm;
+
+    uint64_t commandsReceived;
+    uint64_t commandsApplied;
+    uint64_t commandsRejected;
+    uint64_t commandsFailed;
+    uint64_t rawControlDenied;
+    int32_t  lastCommandStatus;
 };
+
+/* La porte unique, vue de librtlsdr (brtl_bus) : liste blanche PUIS bus. */
+static int BelksiriRtlSdrDriverBusGate(void *ctx, const BHRFControlRequest *req,
+                                       BHRFControlResponse *resp)
+{
+    auto *self = reinterpret_cast<BelksiriRtlSdrDriver *>(ctx);
+    if (self == nullptr) {
+        return 1;
+    }
+    return self->RtlControlRequest(req, resp) == kIOReturnSuccess ? 0 : 1;
+}
 
 bool BelksiriRtlSdrDriver::init(void)
 {
@@ -147,12 +255,23 @@ bool BelksiriRtlSdrDriver::init(void)
     if (ivars == nullptr) {
         return false;
     }
+    ivars->lock = IOLockAlloc();
+    if (ivars->lock == nullptr) {
+        IOSafeDeleteNULL(ivars, BelksiriRtlSdrDriver_IVars, 1);
+        return false;
+    }
     bhrf_session_init(&ivars->session);
+    brtl_own_init(&ivars->own);
+    ivars->appliedGainTenthDb = -1;
     return true;
 }
 
 void BelksiriRtlSdrDriver::free(void)
 {
+    if (ivars != nullptr && ivars->lock != nullptr) {
+        IOLockFree(ivars->lock);
+        ivars->lock = nullptr;
+    }
     IOSafeDeleteNULL(ivars, BelksiriRtlSdrDriver_IVars, 1);
     super::free();
 }
@@ -166,8 +285,9 @@ IMPL(BelksiriRtlSdrDriver, Start)
         return ret;
     }
 
-    BRTL_LOG("Start: protocole v%u, build %u", BHRF_PROTOCOL_VERSION,
-             (unsigned)BRTL_BUILD_ID);
+    BRTL_LOG("Start: protocole client v%u, build %u, équipe cliente %s",
+             BRTL_CLIENT_PROTOCOL_VERSION, (unsigned)BRTL_BUILD_ID,
+             kBrtlExpectedTeam[0] ? "configurée" : "ABSENTE (tout client refusé)");
 
     ivars->device = OSDynamicCast(IOUSBHostDevice, provider);
     if (ivars->device == nullptr) {
@@ -269,6 +389,8 @@ IMPL(BelksiriRtlSdrDriver, Start)
     }
 
     bhrf_session_init(&ivars->session);
+    /* Transport de librtlsdr : la porte RtlControlRequest de CE pilote. */
+    brtl_bus_init(&ivars->bus, BelksiriRtlSdrDriverBusGate, this);
 
     /* Publication dans le registre IOKit. Ce que l'application devra chercher
      * n'est PAS la classe « BelksiriRtlSdrDriver » — le registre enregistre ce
@@ -297,11 +419,20 @@ IMPL(BelksiriRtlSdrDriver, Stop)
              ivars ? ivars->controlUsbErrors : 0);
 
     if (ivars != nullptr) {
+        if (ivars->lock != nullptr) IOLockLock(ivars->lock);
         /* Ordre obligatoire : arrêter les transferts AVANT de relâcher le pipe
          * et l'interface. Une complétion qui arriverait après la libération du
          * ring écrirait dans de la mémoire rendue. */
         BHRFSimpleStatus st = {};
         RtlStopRx(&st);
+
+        /* Le contrôleur ne doit plus rien émettre : le périphérique est parti. */
+        if (ivars->ctrl != nullptr) {
+            brtl_ctrl_mark_lost(ivars->ctrl);
+            brtl_ctrl_close(ivars->ctrl);
+            ivars->ctrl = nullptr;
+        }
+        brtl_own_reset(&ivars->own);
 
         /* ICI, et nulle part ailleurs, se déclare la terminaison : IOKit
          * n'appelle Stop() que lorsque le périphérique a réellement disparu.
@@ -338,6 +469,7 @@ IMPL(BelksiriRtlSdrDriver, Stop)
             ivars->device->Close(this, 0);
             OSSafeReleaseNULL(ivars->device);
         }
+        if (ivars->lock != nullptr) IOLockUnlock(ivars->lock);
     }
 
     return Stop(provider, SUPERDISPATCH);
@@ -381,13 +513,14 @@ kern_return_t BelksiriRtlSdrDriver::RtlGetProtocolInfo(BHRFProtocolInfo *outInfo
     if (outInfo == nullptr || ivars == nullptr) {
         return kIOReturnBadArgument;
     }
-    outInfo->protocolVersion = BHRF_PROTOCOL_VERSION;
+    outInfo->protocolVersion = BRTL_CLIENT_PROTOCOL_VERSION;
     outInfo->driverBuildId   = (uint32_t)BRTL_BUILD_ID;
     outInfo->bcdDevice       = ivars->bcdDevice;
     outInfo->idVendor        = ivars->idVendor;
     outInfo->idProduct       = ivars->idProduct;
     outInfo->deviceState     = (uint16_t)bhrf_session_device_state(&ivars->session);
-    outInfo->capabilities    = 0;
+    outInfo->capabilities    = BRTL_CAP_TUNER_CONTROL | BRTL_CAP_DEVICE_INFO |
+                               BRTL_CAP_OWNERSHIP;
     return kIOReturnSuccess;
 }
 
@@ -428,7 +561,7 @@ kern_return_t BelksiriRtlSdrDriver::RtlControlRequest(const BHRFControlRequest *
     }
     /* Les requêtes de contrôle restent permises dans TOUS les états sauf la
      * terminaison — y compris pendant un arrêt en cours, puisque c'est ainsi
-     * qu'on remet le HackRF en mode OFF juste après avoir abandonné les
+     * qu'on remet le périphérique au repos juste après avoir abandonné les
      * transferts. */
     if (!bhrf_session_can_control(&ivars->session)) {
         resp->status = kBHRFStatusTerminated;
@@ -565,7 +698,7 @@ kern_return_t BelksiriRtlSdrDriver::RtlAllocateRingIfNeeded(uint32_t blockBytes)
     ivars->ringHeader = reinterpret_cast<BHRFRingHeader *>(seg.address);
     memset(ivars->ringHeader, 0, BHRF_RING_HEADER_BYTES);
     ivars->ringHeader->magic         = BHRF_RING_MAGIC;
-    ivars->ringHeader->layoutVersion = BHRF_PROTOCOL_VERSION;
+    ivars->ringHeader->layoutVersion = BRTL_RING_LAYOUT_VERSION;
     ivars->ringHeader->blockCount    = count;
     ivars->ringHeader->blockBytes    = blockBytes;
     ivars->ringHeader->headerBytes   = BHRF_RING_HEADER_BYTES;
@@ -762,7 +895,7 @@ kern_return_t BelksiriRtlSdrDriver::RtlStopRx(BHRFSimpleStatus *outStatus)
          * La documentation d'IOUSBHostPipe::Abort est explicite : « If NULL,
          * all requests will be aborted. Only control endpoints can specify a
          * non-NULL value. » Ce paramètre valait `this`. L'abandon n'avait donc
-         * jamais lieu : les transferts restaient en vol, le HackRF passait
+         * jamais lieu : les transferts restaient en vol, le périphérique passait
          * ensuite en mode OFF, et ces transferts finissaient par échouer en
          * « ne répond pas » — ce que la complétion prenait pour un
          * débranchement. C'est l'origine exacte du blocage après Stop RX. */
@@ -779,7 +912,7 @@ kern_return_t BelksiriRtlSdrDriver::RtlStopRx(BHRFSimpleStatus *outStatus)
          * le PROCHAIN démarrage échouerait, et l'on aurait corrigé un blocage
          * pour en créer un autre.
          *
-         * `withRequest = false` : c'est nous qui avons abandonné, le HackRF n'a
+         * `withRequest = false` : c'est nous qui avons abandonné, le périphérique n'a
          * rien refusé. Lui envoyer un CLEAR_FEATURE ENDPOINT_HALT alors qu'il
          * n'a pas calé serait lui parler d'un incident qui n'a pas eu lieu. */
         ret = ivars->inPipe->ClearStall(false);
@@ -791,7 +924,7 @@ kern_return_t BelksiriRtlSdrDriver::RtlStopRx(BHRFSimpleStatus *outStatus)
     /* Retour au repos. Inconditionnel, sauf terminaison réelle du fournisseur :
      * la version précédente ne restaurait l'état que s'il valait encore
      * « réception », de sorte qu'un « terminé » posé à tort par une complétion
-     * n'était JAMAIS révoqué. Il fallait débrancher le HackRF. */
+     * n'était JAMAIS révoqué. Il fallait débrancher le périphérique. */
     bhrf_session_finish_stop(&ivars->session);
 
     if (ivars->ringHeader != nullptr) {
@@ -914,4 +1047,366 @@ IMPL(BelksiriRtlSdrDriver, ReadComplete)
         BRTL_LOG("rx: resoumission impossible (0x%08x) — %u transferts restants",
                  (unsigned)ret, ivars->session.inFlight);
     }
+}
+
+/* ───────────────────────── Protocole client v2 ──────────────────────────── */
+
+namespace {
+
+/* Verrou du pilote, relâché en sortie de portée. */
+struct BrtlLockGuard {
+    IOLock *lock;
+    explicit BrtlLockGuard(IOLock *l) : lock(l) { if (lock) IOLockLock(lock); }
+    ~BrtlLockGuard() { if (lock) IOLockUnlock(lock); }
+};
+
+void brtl_result(BRTLClientResult *out, BRTLClientStatus status,
+                 int32_t controller = 0, int64_t applied = 0)
+{
+    if (out == nullptr) return;
+    out->status = (int32_t)status;
+    out->controllerStatus = controller;
+    out->applied = applied;
+}
+
+void brtl_copy_name(char *dst, size_t cap, const char *src)
+{
+    if (dst == nullptr || cap == 0) return;
+    size_t i = 0;
+    if (src != nullptr) {
+        for (; i + 1 < cap && src[i] != 0; i++) dst[i] = src[i];
+    }
+    dst[i] = 0;
+}
+
+} // namespace
+
+kern_return_t BelksiriRtlSdrDriver::RtlEnsureControllerLocked(void)
+{
+    if (ivars->ctrl != nullptr) {
+        return kIOReturnSuccess;
+    }
+    if (bhrf_session_state(&ivars->session) == kBHRFSessionTerminated ||
+        ivars->interface == nullptr) {
+        return kIOReturnNoDevice;
+    }
+    brtl_transport t = {};
+    t.ctx = &ivars->bus;
+    t.control_transfer = brtl_bus_control_transfer;
+
+    brtl_device_info info = {};
+    brtl_ctrl *c = nullptr;
+    brtl_bus_begin_probe(&ivars->bus);
+    const brtl_status st = brtl_ctrl_open(&t, &c, &info);
+    brtl_bus_finish_probe(&ivars->bus, st == BRTL_OK ? info.tuner_i2c_addr : 0);
+    ivars->devInfo = info;
+    ivars->tunerStatus = (int32_t)st;
+    if (st != BRTL_OK || c == nullptr) {
+        BRTL_LOG("contrôleur : ouverture refusée (%s), tuner « %s »",
+                 brtl_status_name(st), info.tuner_name);
+        return kIOReturnUnsupported;
+    }
+    ivars->ctrl = c;
+
+    /* Réglages de départ, ceux de rtl_tcp ; le client applique les siens. */
+    uint32_t applied = 0;
+    if (brtl_ctrl_set_sample_rate(c, BRTL_DEFAULT_RATE_HZ, &applied) == BRTL_OK) {
+        ivars->sampleRateHz = applied;
+    }
+    applied = 0;
+    const brtl_status fs = brtl_ctrl_set_center_frequency(c, BRTL_DEFAULT_FREQ_HZ, &applied);
+    if (fs == BRTL_OK || fs == BRTL_ERR_PLL_UNLOCKED) {
+        ivars->frequencyHz = applied;
+    }
+    int g = -1;
+    brtl_ctrl_set_gain(c, -1, &g);
+    ivars->manualGain = false;
+    ivars->appliedGainTenthDb = -1;
+    ivars->biasTee = false;
+    ivars->rtlAgc = false;
+    ivars->offsetTuning = false;
+    ivars->directSampling = 0;
+    ivars->ppm = 0;
+
+    BRTL_LOG("contrôleur : tuner %s « %s » prêt (%llu transferts, %llu sondes "
+             "sans réponse, %llu refus, %llu erreurs USB)",
+             info.tuner_name, info.product, ivars->bus.transfers,
+             ivars->bus.probe_misses, ivars->bus.denied, ivars->bus.usb_errors);
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlAcquire(OSObject *client, BRTLClientResult *out)
+{
+    if (ivars == nullptr || out == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    if (bhrf_session_state(&ivars->session) == kBHRFSessionTerminated) {
+        brtl_result(out, kBRTLClientTerminated);
+        return kIOReturnSuccess;
+    }
+    const bool already = brtl_own_is_owner(&ivars->own, client);
+    const BRTLClientStatus own = brtl_own_acquire(&ivars->own, client);
+    if (own != kBRTLClientOK) {
+        BRTL_LOG("acquire : refusé (%s) — la radio appartient à un autre client",
+                 brtl_client_status_name(own));
+        brtl_result(out, own);
+        return kIOReturnSuccess;
+    }
+    if (RtlEnsureControllerLocked() != kIOReturnSuccess) {
+        if (!already) brtl_own_release(&ivars->own, client);
+        brtl_result(out, kBRTLClientTunerUnavailable, ivars->tunerStatus);
+        return kIOReturnSuccess;
+    }
+    if (!already) {
+        BRTL_LOG("acquire : radio attribuée (acquisition n°%llu)", ivars->own.acquires);
+    }
+    brtl_result(out, kBRTLClientOK);
+    return kIOReturnSuccess;
+}
+
+/* Rend la radio au repos : réception arrêtée, bias-tee coupé. Verrou pris. */
+static void brtl_quiesce_locked(BelksiriRtlSdrDriver *self, BelksiriRtlSdrDriver_IVars *iv)
+{
+    if (bhrf_session_state(&iv->session) == kBHRFSessionReceiving) {
+        BHRFSimpleStatus st = {};
+        self->RtlStopRx(&st);
+    }
+    if (iv->ctrl != nullptr && iv->biasTee) {
+        brtl_ctrl_set_bias_tee(iv->ctrl, 0);
+        iv->biasTee = false;
+    }
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlRelease(OSObject *client, BRTLClientResult *out)
+{
+    if (ivars == nullptr || out == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    if (!brtl_own_is_owner(&ivars->own, client)) {
+        brtl_result(out, kBRTLClientNotOwner);
+        return kIOReturnSuccess;
+    }
+    brtl_quiesce_locked(this, ivars);
+    brtl_own_release(&ivars->own, client);
+    BRTL_LOG("release : radio libérée par son propriétaire");
+    brtl_result(out, kBRTLClientOK);
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlClientGone(OSObject *client)
+{
+    if (ivars == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    if (!brtl_own_is_owner(&ivars->own, client)) {
+        return kIOReturnSuccess;
+    }
+    /* Le propriétaire est parti sans Release (fermeture, plantage, fin du
+     * processus) : c'est au pilote d'arrêter la réception. Sans cela, le
+     * client suivant trouvait une session « déjà en réception ». */
+    BRTL_LOG("propriétaire disparu — arrêt de la réception par le pilote");
+    brtl_quiesce_locked(this, ivars);
+    brtl_own_client_gone(&ivars->own, client);
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlCheckOwner(OSObject *client)
+{
+    if (ivars == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    return brtl_own_is_owner(&ivars->own, client) ? kIOReturnSuccess : kIOReturnNotPermitted;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlNoteRawControlDenied(void)
+{
+    if (ivars == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    ivars->rawControlDenied++;
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlCommand(OSObject *client, const BRTLCommand *cmd,
+                                               BRTLClientResult *out)
+{
+    if (ivars == nullptr || cmd == nullptr || out == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    ivars->commandsReceived++;
+
+    BRTLClientStatus gate = brtl_own_is_owner(&ivars->own, client)
+                                ? brtl_command_validate(cmd) : kBRTLClientNotOwner;
+    if (gate == kBRTLClientOK && RtlEnsureControllerLocked() != kIOReturnSuccess) {
+        gate = kBRTLClientTunerUnavailable;
+    }
+    if (gate != kBRTLClientOK) {
+        ivars->commandsRejected++;
+        ivars->lastCommandStatus = (int32_t)gate;
+        brtl_result(out, gate, gate == kBRTLClientTunerUnavailable ? ivars->tunerStatus : 0);
+        return kIOReturnSuccess;
+    }
+
+    brtl_ctrl *c = ivars->ctrl;
+    const int64_t v = cmd->value;
+    brtl_status st = BRTL_OK;
+    int64_t applied = 0;
+    switch (cmd->opcode) {
+    case kBRTLOpSetFrequency: {
+        uint32_t a = 0;
+        st = brtl_ctrl_set_center_frequency(c, (uint32_t)v, &a);
+        /* PLL non verrouillée : la fréquence est en place, mais le client
+         * doit le savoir (controllerStatus). */
+        if (st == BRTL_OK || st == BRTL_ERR_PLL_UNLOCKED) ivars->frequencyHz = a;
+        applied = a;
+        break;
+    }
+    case kBRTLOpSetSampleRate: {
+        uint32_t a = 0;
+        st = brtl_ctrl_set_sample_rate(c, (uint32_t)v, &a);
+        if (st == BRTL_OK) ivars->sampleRateHz = a;
+        applied = a;
+        break;
+    }
+    case kBRTLOpSetGainMode: {
+        int g = -1;
+        const bool manual = v != 0;
+        st = brtl_ctrl_set_gain(c, manual ? ivars->gainTenthDb : -1, &g);
+        if (st == BRTL_OK) {
+            ivars->manualGain = manual;
+            ivars->appliedGainTenthDb = manual ? g : -1;
+        }
+        applied = manual ? g : -1;
+        break;
+    }
+    case kBRTLOpSetGain: {
+        int g = 0;
+        st = brtl_ctrl_set_gain(c, (int)v, &g);
+        if (st == BRTL_OK) {
+            ivars->gainTenthDb = (int32_t)v;
+            ivars->manualGain = true;
+            ivars->appliedGainTenthDb = g;
+        }
+        applied = g;
+        break;
+    }
+    case kBRTLOpSetFreqCorrection:
+        st = brtl_ctrl_set_freq_correction(c, (int)v);
+        if (st == BRTL_OK) ivars->ppm = (int32_t)v;
+        applied = ivars->ppm;
+        break;
+    case kBRTLOpSetRtlAgc:
+        st = brtl_ctrl_set_rtl_agc(c, v != 0);
+        if (st == BRTL_OK) ivars->rtlAgc = v != 0;
+        applied = ivars->rtlAgc ? 1 : 0;
+        break;
+    case kBRTLOpSetDirectSampling:
+        st = brtl_ctrl_set_direct_sampling(c, (int)v);
+        if (st == BRTL_OK) ivars->directSampling = (uint32_t)v;
+        applied = ivars->directSampling;
+        break;
+    case kBRTLOpSetOffsetTuning:
+        st = brtl_ctrl_set_offset_tuning(c, v != 0);
+        if (st == BRTL_OK) ivars->offsetTuning = v != 0;
+        applied = ivars->offsetTuning ? 1 : 0;
+        break;
+    case kBRTLOpSetBiasTee:
+        st = brtl_ctrl_set_bias_tee(c, v != 0);
+        if (st == BRTL_OK) ivars->biasTee = v != 0;
+        applied = ivars->biasTee ? 1 : 0;
+        break;
+    default:
+        st = BRTL_ERR_ARGUMENT; /* inaccessible : validé plus haut */
+        break;
+    }
+
+    const bool ok = st == BRTL_OK ||
+                    (cmd->opcode == kBRTLOpSetFrequency && st == BRTL_ERR_PLL_UNLOCKED);
+    if (ok) {
+        ivars->commandsApplied++;
+        ivars->lastCommandStatus = kBRTLClientOK;
+        brtl_result(out, kBRTLClientOK, (int32_t)st, applied);
+    } else {
+        ivars->commandsFailed++;
+        ivars->lastCommandStatus = kBRTLClientCommandFailed;
+        BRTL_LOG("commande %s(%lld) : échec %s", brtl_opcode_name(cmd->opcode),
+                 (long long)v, brtl_status_name(st));
+        brtl_result(out, kBRTLClientCommandFailed, (int32_t)st, applied);
+    }
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlGetDeviceInfo(OSObject *client, BRTLDeviceInfo *out)
+{
+    if (ivars == nullptr || out == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    memset(out, 0, sizeof(*out));
+    out->infoVersion = 1;
+    /* Lecture libre : la première fait la détection du tuner si personne ne
+     * l'a encore faite (aucun effet sur un flux, qui exige un propriétaire,
+     * donc un contrôleur déjà ouvert). */
+    RtlEnsureControllerLocked();
+    out->tunerStatus = ivars->ctrl != nullptr ? 0 : ivars->tunerStatus;
+    out->tunerType   = (uint32_t)ivars->devInfo.tuner_type;
+    out->rtlXtalHz   = ivars->devInfo.rtl_xtal_hz;
+    out->tunerXtalHz = ivars->devInfo.tuner_xtal_hz;
+    if (ivars->ctrl != nullptr) {
+        int gains[64] = {};
+        const int n = brtl_ctrl_gains(ivars->ctrl, gains, 64);
+        const uint32_t k = n < 0 ? 0u : ((uint32_t)n < BRTL_MAX_GAINS ? (uint32_t)n : BRTL_MAX_GAINS);
+        for (uint32_t i = 0; i < k; i++) out->gainsTenthDb[i] = gains[i];
+        out->gainCount = k;
+    }
+    out->ownerPresent  = ivars->own.owner != nullptr ? 1u : 0u;
+    out->callerIsOwner = brtl_own_is_owner(&ivars->own, client) ? 1u : 0u;
+    out->frequencyHz   = ivars->frequencyHz;
+    out->sampleRateHz  = ivars->sampleRateHz;
+    out->gainTenthDb   = ivars->appliedGainTenthDb;
+    out->freqCorrectionPpm = ivars->ppm;
+    uint32_t flags = 0;
+    if (ivars->rtlAgc)       flags |= BRTL_FLAG_RTL_AGC;
+    if (ivars->biasTee)      flags |= BRTL_FLAG_BIAS_TEE;
+    if (ivars->offsetTuning) flags |= BRTL_FLAG_OFFSET_TUNING;
+    if (ivars->manualGain)   flags |= BRTL_FLAG_MANUAL_GAIN;
+    if (bhrf_session_state(&ivars->session) == kBHRFSessionReceiving) flags |= BRTL_FLAG_STREAMING;
+    out->flags = flags;
+    out->directSampling   = ivars->directSampling;
+    out->commandsReceived = ivars->commandsReceived;
+    out->commandsApplied  = ivars->commandsApplied;
+    out->commandsRejected = ivars->commandsRejected;
+    out->commandsFailed   = ivars->commandsFailed;
+    out->rawControlDenied = ivars->rawControlDenied;
+    out->busyRefusals     = ivars->own.busy_refusals;
+    out->lastCommandStatus = ivars->lastCommandStatus;
+    brtl_copy_name(out->tunerName, sizeof out->tunerName, ivars->devInfo.tuner_name);
+    brtl_copy_name(out->manufacturer, sizeof out->manufacturer, ivars->devInfo.manufacturer);
+    brtl_copy_name(out->product, sizeof out->product, ivars->devInfo.product);
+    return kIOReturnSuccess;
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlOwnerStartRx(OSObject *client, const BHRFStartRxRequest *req,
+                                                    BHRFSimpleStatus *outStatus)
+{
+    if (ivars == nullptr || req == nullptr || outStatus == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    memset(outStatus, 0, sizeof(*outStatus));
+    if (!brtl_own_is_owner(&ivars->own, client)) {
+        outStatus->status = (int32_t)BRTL_BHRF_STATUS_NOT_OWNER;
+        return kIOReturnSuccess;
+    }
+    if (RtlEnsureControllerLocked() != kIOReturnSuccess) {
+        outStatus->status = kBHRFStatusNotOpen;
+        return kIOReturnSuccess;
+    }
+    /* Vider le FIFO de l'endpoint avant les premiers transferts (rtlsdr). */
+    if (bhrf_session_can_start(&ivars->session)) {
+        brtl_ctrl_reset_stream(ivars->ctrl);
+    }
+    return RtlStartRx(req, outStatus);
+}
+
+kern_return_t BelksiriRtlSdrDriver::RtlOwnerStopRx(OSObject *client, BHRFSimpleStatus *outStatus)
+{
+    if (ivars == nullptr || outStatus == nullptr) return kIOReturnBadArgument;
+    BrtlLockGuard guard(ivars->lock);
+    memset(outStatus, 0, sizeof(*outStatus));
+    if (!brtl_own_is_owner(&ivars->own, client)) {
+        outStatus->status = (int32_t)BRTL_BHRF_STATUS_NOT_OWNER;
+        return kIOReturnSuccess;
+    }
+    return RtlStopRx(outStatus);
 }

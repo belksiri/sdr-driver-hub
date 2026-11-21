@@ -2,7 +2,7 @@
  * BelksiriRtlSdrUserClient.iig — Le point d'entrée des applications.
  *
  * Le user client ne contient AUCUNE règle de sécurité : il désérialise, délègue
- * au pilote, resérialise. La liste blanche vit dans bhrf_policy.c, un seul
+ * au pilote, resérialise. La liste blanche vit dans brtl_policy.c, un seul
  * endroit, testable sur hôte. Un filtre dupliqué entre le user client et le
  * pilote finirait par diverger, et c'est exactement la divergence qui crée un
  * trou.

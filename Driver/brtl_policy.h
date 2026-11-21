@@ -1,9 +1,9 @@
 /*
  * brtl_policy.h — Liste blanche des requêtes de contrôle du dext RTL-SDR.
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY (voir docs/RTLSDR_GPL_PROTOTYPE.md).
- * Ce fichier est notre code ; l'encodage qu'il filtre est celui qu'emploie
- * librtlsdr (osmocom, GPL-2.0-or-later), que le prototype embarque.
+ * Notre code (aucune ligne de librtlsdr) ; l'encodage qu'il filtre est celui
+ * qu'emploie librtlsdr (osmocom, GPL-2.0-or-later), compilée dans
+ * l'APPLICATION SDR Driver Hub et non dans ce pilote.
  *
  * Le pilote est STRICTEMENT en réception. Évaluée dans le dext AVANT tout
  * accès au bus : un refus ne produit aucun octet sur l'USB.

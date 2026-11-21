@@ -2,9 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- EXPERIMENTAL - DEVELOPMENT ONLY. Meme forme que le pilote HackRF : le
-	     profil de developpement accorde [{ idVendor: "*" }] ; le matching reel
-	     est restreint par IOKitPersonalities (0x0BDA:0x2838 / 0x2832). -->
+	<!-- Builds de développement (profil DriverKit de l'équipe : idVendor « * »).
+	     Le matching réel est restreint par IOKitPersonalities (0x0BDA:0x2838 /
+	     0x0BDA:0x2832). L'archive App Store utilise
+	     BelksiriRtlSdrDriver.AppStore.entitlements. -->
 	<key>com.apple.developer.driverkit</key>
 	<true/>
 	<key>com.apple.developer.driverkit.transport.usb</key>

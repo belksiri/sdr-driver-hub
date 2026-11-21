@@ -1,9 +1,8 @@
 /*
  * brtl_transport.h — Transport abstrait entre librtlsdr et le pilote DriverKit.
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
- * Ce fichier fait partie du composant GPL du prototype (il est lié à
- * librtlsdr) : voir THIRD_PARTY_NOTICES_RTLSDR.md.
+ * Copyright (C) 2026 Belksiri.
+ * SPDX-License-Identifier: GPL-2.0-or-later — linked with librtlsdr; see THIRD_PARTY_NOTICES.md.
  *
  * librtlsdr ne parle qu'à libusb. Sur iPadOS, libusb n'existe pas : le shim
  * `libusb.h` de ce dossier traduit les quelques appels nécessaires vers ce

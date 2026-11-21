@@ -1,11 +1,20 @@
 /*
  * brtl_libusb_shim.c — Implémentation du shim libusb (voir libusb.h).
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
- * Lié à librtlsdr (GPL-2.0-or-later) : ce fichier est distribué sous la même
- * licence dans le prototype. Copyright (C) 2026 Belksiri Spectrum.
+ * Copyright (C) 2026 Belksiri.
+ * SPDX-License-Identifier: GPL-2.0-or-later — linked with librtlsdr; see THIRD_PARTY_NOTICES.md.
  */
+#ifdef BRTL_DRIVERKIT
+/* Dans le pilote DriverKit, chaque appel au contrôleur (donc au shim) est
+ * fait sous le verrou `ctrlLock` du pilote : aucun accès concurrent n'existe,
+ * et DriverKit n'expose pas <pthread.h>. */
+typedef int pthread_mutex_t;
+#define PTHREAD_MUTEX_INITIALIZER 0
+#define pthread_mutex_lock(m) ((void)(m))
+#define pthread_mutex_unlock(m) ((void)(m))
+#else
 #include <pthread.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>

@@ -78,7 +78,7 @@ int bhrf_session_can_start(const BHRFSession *s);
 
 /* Les requêtes de contrôle restent possibles dans TOUS les états sauf la
  * terminaison — y compris pendant un arrêt : c'est ce qui permet de remettre
- * le HackRF en mode OFF juste après avoir abandonné les transferts. */
+ * le périphérique au repos juste après avoir abandonné les transferts. */
 int bhrf_session_can_control(const BHRFSession *s);
 
 void bhrf_session_started(BHRFSession *s, uint32_t in_flight);

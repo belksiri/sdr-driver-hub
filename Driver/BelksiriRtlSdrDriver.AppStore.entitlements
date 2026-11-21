@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Distribution App Store : uniquement le vendeur des RTL2832U visés,
+	     Realtek 0x0BDA = 3034. Ces deux entitlements doivent être ACCORDÉS par
+	     Apple pour la distribution (demande DriverKit), sinon la signature de
+	     l'archive échoue. -->
+	<key>com.apple.developer.driverkit</key>
+	<true/>
+	<key>com.apple.developer.driverkit.transport.usb</key>
+	<array>
+		<dict>
+			<key>idVendor</key>
+			<integer>3034</integer>
+		</dict>
+	</array>
+</dict>
+</plist>

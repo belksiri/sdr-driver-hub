@@ -1,9 +1,8 @@
 /*
  * brtl_rtl_controller.c — voir brtl_rtl_controller.h.
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
- * Copyright (C) 2026 Belksiri Spectrum. Distribué avec librtlsdr sous
- * GPL-2.0-or-later dans ce prototype.
+ * Copyright (C) 2026 Belksiri.
+ * SPDX-License-Identifier: GPL-2.0-or-later — linked with librtlsdr; see THIRD_PARTY_NOTICES.md.
  */
 #include "brtl_rtl_controller.h"
 

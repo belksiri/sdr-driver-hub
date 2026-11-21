@@ -1,7 +1,8 @@
 /*
  * libusb.h — Shim minimal de libusb pour compiler librtlsdr sur iPadOS.
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
+ * Copyright (C) 2026 Belksiri.
+ * SPDX-License-Identifier: GPL-2.0-or-later — linked with librtlsdr; see THIRD_PARTY_NOTICES.md.
  *
  * Ce n'est PAS libusb : seules les déclarations dont librtlsdr a besoin sont
  * présentes, et leurs implémentations (brtl_libusb_shim.c) passent par

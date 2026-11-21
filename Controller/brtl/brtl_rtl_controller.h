@@ -1,8 +1,8 @@
 /*
  * brtl_rtl_controller.h — Couche B : contrôleur RTL-SDR isolé (librtlsdr).
  *
- * EXPERIMENTAL — GPL — DEVELOPMENT ONLY. NOT APPROVED FOR APP STORE DISTRIBUTION.
- * Lié à librtlsdr (osmocom, GPL-2.0-or-later). Voir THIRD_PARTY_NOTICES_RTLSDR.md.
+ * Copyright (C) 2026 Belksiri.
+ * SPDX-License-Identifier: GPL-2.0-or-later — linked with librtlsdr; see THIRD_PARTY_NOTICES.md.
  *
  * L'application (Swift) ne voit que cette interface étroite. Derrière elle,
  * librtlsdr programme le RTL2832U et le tuner par le transport du dext. Un
