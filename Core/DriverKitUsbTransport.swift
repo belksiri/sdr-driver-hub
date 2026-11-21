@@ -1,7 +1,7 @@
 //
-//  HackRFDriverKitTransport.swift — Le transport réel, via IOKit.
+//  DriverKitUsbTransport.swift — Le transport réel, via IOKit.
 //
-//  Ce fichier est le SEUL du prototype qui touche à IOKit, et il est identique
+//  Ce fichier est le SEUL de l'application qui touche à IOKit, et il est identique
 //  sur macOS et iPadOS : `IOServiceOpen`, `IOConnectCallStructMethod` et
 //  `IOServiceAddMatchingNotification` existent des deux côtés. Ce qui diffère
 //  entre les deux plateformes n'est pas ici, c'est l'INSTALLATION du pilote —
@@ -19,9 +19,7 @@ import Foundation
 // fait par -framework IOKit. C'est exactement le genre de divergence de
 // plateforme qu'il valait mieux découvrir aujourd'hui que demain sur l'iPad.
 
-final class HackRFDriverKitTransport: HackRFTransport {
-
-    let kind: TransportKind = .real
+final class DriverKitUsbTransport: UsbDeviceTransport {
 
     private(set) var state: ProbeState = .driverNotInstalled {
         didSet {
@@ -39,18 +37,17 @@ final class HackRFDriverKitTransport: HackRFTransport {
     /// Un service DriverKit déclaré `IOClass = IOUserService` apparaît dans le
     /// registre avec :
     ///
-    ///     classe de l'entrée .... IOUserService        ← jamais BelksiriHackRFDriver
-    ///     nom de l'entrée ....... BelksiriHackRFDriver
-    ///     propriété IOUserClass . BelksiriHackRFDriver
+    ///     classe de l'entrée .... IOUserService        ← jamais BelksiriRtlSdrDriver
+    ///     nom de l'entrée ....... BelksiriRtlSdrDriver
+    ///     propriété IOUserClass . BelksiriRtlSdrDriver
     ///
     /// C'est pourquoi la recherche se fait par NOM (`IOServiceNameMatching`) et
     /// jamais par classe (`IOServiceMatching`) : cette dernière construit
     /// `{ IOProviderClass: … }`, comparé à la classe de l'entrée, et ne peut
     /// donc jamais correspondre. Vérifié sur machine réelle — voir
     /// `evidence/09-liaison-user-client.md`.
-    /// Nom d'entrée du service recherché. « BelksiriHackRFDriver » par défaut ;
-    /// le prototype RTL-SDR (branche expérimentale) passe
-    /// « BelksiriRtlSdrDriver », qui parle le même protocole de user client.
+    /// Nom d'entrée du service recherché (« BelksiriRtlSdrDriver » pour le
+    /// backend RTL-SDR).
     private let serviceUserClass: String
 
     /// Journal technique de la découverte. Il ne remplace pas les journaux
@@ -81,8 +78,8 @@ final class HackRFDriverKitTransport: HackRFTransport {
             case .notSearchedYet:
                 return "Recherche du service non encore effectuée."
             case .noServicePublished:
-                return "Aucun service « BelksiriHackRFDriver » publié dans IOKit. "
-                     + "Le pilote est-il activé dans Réglages, et un HackRF est-il branché ?"
+                return "Aucun service du pilote publié dans IOKit. "
+                     + "Le pilote est-il activé dans Réglages, et le périphérique est-il branché ?"
             case .servicePublishedNotOpened:
                 return "Service publié. User client pas encore ouvert."
             case .openRefused(let code):
@@ -109,7 +106,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
     /// ring et les requêtes de contrôle ne doivent jamais s'exécuter sur le
     /// thread principal : à 40 Mo/s, une seule opération bloquante sur le thread
     /// d'interface suffit à produire les saccades qu'on cherche à mesurer.
-    private let queue = DispatchQueue(label: "com.belksiri.hackrfprobe.iokit")
+    private let queue = DispatchQueue(label: "com.belksiri.sdrdriverhub.iokit")
 
     private(set) var lastProtocolInfo: BHRFProtocolInfo?
 
@@ -132,7 +129,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
         set { queue.sync { drain.consumer = newValue } }
     }
 
-    init(serviceUserClass: String = "BelksiriHackRFDriver") {
+    init(serviceUserClass: String) {
         self.serviceUserClass = serviceUserClass
         startMatchingNotifications()
     }
@@ -182,7 +179,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
             let r = IOServiceAddMatchingNotification(
                 port, kIOFirstMatchNotification, appearing, { ctx, iterator in
                     guard let ctx else { return }
-                    let me = Unmanaged<HackRFDriverKitTransport>.fromOpaque(ctx).takeUnretainedValue()
+                    let me = Unmanaged<DriverKitUsbTransport>.fromOpaque(ctx).takeUnretainedValue()
                     me.drainAppeared(iterator)
                 }, selfPtr, &matchedIterator)
             trace(r == kIOReturnSuccess
@@ -195,7 +192,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
             let r = IOServiceAddMatchingNotification(
                 port, kIOTerminatedNotification, terminating, { ctx, iterator in
                     guard let ctx else { return }
-                    let me = Unmanaged<HackRFDriverKitTransport>.fromOpaque(ctx).takeUnretainedValue()
+                    let me = Unmanaged<DriverKitUsbTransport>.fromOpaque(ctx).takeUnretainedValue()
                     me.drainTerminated(iterator)
                 }, selfPtr, &terminatedIterator)
             trace(r == kIOReturnSuccess
@@ -319,7 +316,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
             locateServiceIfNeeded()
             guard service != IO_OBJECT_NULL else {
                 // Le service n'est pas publié. Cela peut vouloir dire « pilote
-                // non activé » ou « pilote actif mais aucun HackRF branché » :
+                // non activé » ou « pilote actif mais aucun périphérique branché » :
                 // le diagnostic le dit, l'état ne le distingue pas encore.
                 trace("connect() : abandon, aucun service.")
                 throw TransportError.serviceNotFound
@@ -346,10 +343,10 @@ final class HackRFDriverKitTransport: HackRFTransport {
             // deux côtés.
             let info: BHRFProtocolInfo = try callStruct(selector: kBHRFSelProtocolVersion,
                                                         input: Optional<Never>.none)
-            guard info.protocolVersion == BHRF.protocolVersion else {
+            guard info.protocolVersion == DriverProtocol.version else {
                 closeConnectionLocked()
                 throw TransportError.protocolMismatch(driver: info.protocolVersion,
-                                                      app: BHRF.protocolVersion)
+                                                      app: DriverProtocol.version)
             }
             lastProtocolInfo = info
             return info
@@ -417,6 +414,17 @@ final class HackRFDriverKitTransport: HackRFTransport {
         }
     }
 
+    /// Sélecteur du protocole client v2 sans entrée (Acquire, Release,
+    /// DeviceInfo).
+    func call<Out>(_ selector: Int) throws -> Out {
+        try queue.sync { try callStruct(selector: selector, input: Optional<Never>.none) }
+    }
+
+    /// Sélecteur du protocole client v2 avec entrée (Command).
+    func call<Out, In>(_ selector: Int, _ input: In) throws -> Out {
+        try queue.sync { try callStruct(selector: selector, input: input) }
+    }
+
     func ringStats() throws -> BHRFRingStats {
         try queue.sync {
             var stats: BHRFRingStats =
@@ -444,7 +452,10 @@ final class HackRFDriverKitTransport: HackRFTransport {
         try queue.sync {
             let st: BHRFSimpleStatus = try callStruct(selector: kBHRFSelStartRx, input: req)
             if st.statusValue == kBHRFStatusUnsupportedSelector {
-                throw TransportError.notSupportedYet("Le streaming bulk IN (étape 5)")
+                throw TransportError.notSupportedYet("La réception continue")
+            }
+            if st.status == Int32(BRTL_BHRF_STATUS_NOT_OWNER) {
+                throw TransportError.notOwner
             }
             guard st.statusValue == kBHRFStatusOK else {
                 throw TransportError.usbError(kern_return_t(st.ioReturn))
@@ -516,7 +527,7 @@ final class HackRFDriverKitTransport: HackRFTransport {
 
     // MARK: - Drainage
 
-    /// 2 ms. À 20 Msps le pilote publie un bloc de 256 KiB toutes les ~6,5 ms :
+    /// 2 ms. Même au débit maximal, le pilote publie un bloc toutes les quelques ms :
     /// ce rythme laisse plusieurs occasions de rattraper un retard avant que le
     /// ring, qui absorbe 0,4 s, ne soit distancé.
     private func startDrainLocked() {

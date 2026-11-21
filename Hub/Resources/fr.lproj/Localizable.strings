@@ -1,0 +1,66 @@
+/* SDR Driver Hub — français. Clé = texte anglais de l'interface. */
+
+"Hardware" = "Matériel";
+"Receiver" = "Récepteur";
+"Device" = "Appareil";
+"Not detected" = "Non détecté";
+"Tuner" = "Tuner";
+"Driver" = "Pilote";
+"Not enabled" = "Non activé";
+"Waiting for device" = "En attente de l'appareil";
+"Ready" = "Prêt";
+"Receiving" = "Réception en cours";
+"Device removed" = "Appareil retiré";
+
+"Local service" = "Service local";
+"Status" = "État";
+"Running" = "Actif";
+"Stopped" = "Arrêté";
+"Spectrum Analyzer One" = "Spectrum Analyzer One";
+"Connected" = "Connecté";
+"Not connected" = "Non connecté";
+"Samples are served on this iPad only (rtl_tcp protocol). The service keeps running in the background while it is on." = "Les échantillons sont servis sur cet iPad uniquement (protocole rtl_tcp). Le service continue en arrière-plan tant qu'il est actif.";
+
+"Reception" = "Réception";
+"Frequency" = "Fréquence";
+"Sample rate" = "Débit d'échantillonnage";
+"Gain" = "Gain";
+"Automatic" = "Automatique";
+"Actual throughput" = "Débit réel";
+"USB errors" = "Erreurs USB";
+"Lost blocks" = "Blocs perdus";
+"IQ content" = "Contenu IQ";
+"Verified" = "Vérifié";
+"Suspect" = "Suspect";
+
+"Check reception" = "Vérifier la réception";
+"Checking…" = "Vérification…";
+"Receives for 1.5 s at 88.8 MHz and checks the real IQ content. Available when Spectrum Analyzer One is not connected." = "Reçoit 1,5 s à 88,8 MHz et contrôle le contenu IQ réel. Disponible quand Spectrum Analyzer One n'est pas connecté.";
+
+"Open-source licenses" = "Licences open source";
+"About" = "À propos";
+"Version" = "Version";
+"Loaded driver build" = "Build du pilote chargé";
+"Supported hardware" = "Matériel pris en charge";
+"SDR Driver Hub owns the USB drivers of your SDR receivers and serves their samples to Spectrum Analyzer One on this iPad. Spectrum Analyzer One opens it with the sdrdriverhub:// link." = "SDR Driver Hub porte les pilotes USB de vos récepteurs SDR et sert leurs échantillons à Spectrum Analyzer One sur cet iPad. Spectrum Analyzer One l'ouvre par le lien sdrdriverhub://.";
+
+"Spectrum Analyzer One is connected and receiving." = "Spectrum Analyzer One est connecté et reçoit.";
+"Ready: Spectrum Analyzer One can connect." = "Prêt : Spectrum Analyzer One peut se connecter.";
+
+/* Messages de HubCore (SpectrumReadiness, RtlSdrBackend). */
+"The RTL-SDR driver is not enabled." = "Le pilote RTL-SDR n'est pas activé.";
+"Open Settings › Apps › SDR Driver Hub › Drivers and turn it on." = "Ouvrez Réglages › Apps › SDR Driver Hub › Pilotes et activez-le.";
+"No RTL-SDR detected." = "Aucun RTL-SDR détecté.";
+"Plug the RTL-SDR into the iPad's USB-C port. If it is already plugged in, turn the driver on in Settings › Apps › SDR Driver Hub › Drivers." = "Branchez le RTL-SDR sur le port USB-C de l'iPad. S'il est déjà branché, activez le pilote dans Réglages › Apps › SDR Driver Hub › Pilotes.";
+"The local service is stopped." = "Le service local est arrêté.";
+"Start the service so that Spectrum Analyzer One can connect." = "Démarrez le service pour que Spectrum Analyzer One puisse se connecter.";
+"The RTL-SDR was unplugged." = "Le RTL-SDR a été débranché.";
+"Plug it back in; the service resumes by itself." = "Rebranchez-le : le service reprend tout seul.";
+"The local service could not start." = "Le service local n'a pas pu démarrer.";
+
+"SDR Driver Hub includes librtlsdr (osmocom rtl-sdr), free software licensed under the GNU General Public License version 2 or later. You may redistribute and modify it under the terms of that licence." = "SDR Driver Hub inclut librtlsdr (osmocom rtl-sdr), logiciel libre publié sous la licence publique générale GNU version 2 ou ultérieure. Vous pouvez le redistribuer et le modifier selon les termes de cette licence.";
+"Components" = "Composants";
+"Third-party notices" = "Mentions des composants tiers";
+"GNU General Public License v2" = "Licence publique générale GNU v2";
+"Source code" = "Code source";
+"Complete corresponding source of this version, with build instructions." = "Code source correspondant complet de cette version, avec les instructions de compilation.";

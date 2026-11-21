@@ -15,7 +15,7 @@ public struct GainRequest: Equatable {
         self.index = index
     }
 
-    mutating func merge(_ cmd: RtlTcpCommand) {
+    mutating func merge(_ cmd: RtlCommand) {
         switch cmd {
         case .gainMode(let m): manual = m
         case .gain(let t): tenthDb = t; index = nil
@@ -39,7 +39,7 @@ public struct GainRequest: Equatable {
 /// passed in so the behaviour is testable without waiting.
 public final class GainCoalescer {
 
-    public static func isGain(_ cmd: RtlTcpCommand) -> Bool {
+    public static func isGain(_ cmd: RtlCommand) -> Bool {
         switch cmd {
         case .gainMode, .gain, .gainByIndex: return true
         default: return false
@@ -64,7 +64,7 @@ public final class GainCoalescer {
     /// Merges `cmd`. Returns the delay after which `take` must be called, or
     /// `nil` when a flush is already scheduled or a request is being applied
     /// (its completion schedules the next one).
-    public func push(_ cmd: RtlTcpCommand, now: TimeInterval) -> TimeInterval? {
+    public func push(_ cmd: RtlCommand, now: TimeInterval) -> TimeInterval? {
         guard !cancelled, Self.isGain(cmd) else { return nil }
         received += 1
         var p = pending ?? GainRequest()

@@ -2,7 +2,7 @@ import XCTest
 @testable import HubCore
 
 /// Simulates the server: the device takes `applyCost` seconds per request.
-private func simulateDrag(_ cmds: [(TimeInterval, RtlTcpCommand)], applyCost: TimeInterval,
+private func simulateDrag(_ cmds: [(TimeInterval, RtlCommand)], applyCost: TimeInterval,
                           coalescer c: GainCoalescer) -> [(TimeInterval, GainRequest)] {
     var timers: [TimeInterval] = []           // due times of scheduled `take`
     var completions: [TimeInterval] = []      // due times of `complete`
@@ -31,8 +31,8 @@ private func simulateDrag(_ cmds: [(TimeInterval, RtlTcpCommand)], applyCost: Ti
 final class GainCoalescerTests: XCTestCase {
 
     /// A full-range slider drag: 600 commands in 3 s (mode + gain, as Spectrum sends).
-    private func drag() -> [(TimeInterval, RtlTcpCommand)] {
-        var out: [(TimeInterval, RtlTcpCommand)] = []
+    private func drag() -> [(TimeInterval, RtlCommand)] {
+        var out: [(TimeInterval, RtlCommand)] = []
         for k in 0..<300 {
             let t = Double(k) * 0.01
             out.append((t, .gainMode(manual: true)))

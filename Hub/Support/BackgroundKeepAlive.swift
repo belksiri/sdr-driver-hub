@@ -8,6 +8,12 @@
 //  Spectrum ni d'une autre app. Actif seulement pendant que le serveur écoute.
 //
 
+//  DÉVELOPPEMENT SEULEMENT : compilé sous HUB_DEV_RTLTCP, jamais dans un
+//  build App Store (règle 2.5.4). Le chemin normal, l'accès direct de
+//  Spectrum Analyzer One au pilote, n'a besoin d'aucun maintien.
+//
+
+#if HUB_DEV_RTLTCP
 import AVFoundation
 
 final class BackgroundKeepAlive {
@@ -33,7 +39,7 @@ final class BackgroundKeepAlive {
             player.play()
             running = true
         } catch {
-            NSLog("HUB: keep-alive audio failed — %@", "\(error)")
+            HubLog.shared.log("keep-alive audio failed — \(error)")
         }
     }
 
@@ -45,3 +51,4 @@ final class BackgroundKeepAlive {
         running = false
     }
 }
+#endif

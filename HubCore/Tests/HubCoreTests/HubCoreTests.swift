@@ -21,11 +21,11 @@ final class RtlTcpProtocolTests: XCTestCase {
     }
 
     func testEveryCommandCodeMaps() {
-        XCTAssertEqual(RtlTcpCommand(code: 0x05, value: UInt32(bitPattern: -3)), .frequencyCorrection(-3))
-        XCTAssertEqual(RtlTcpCommand(code: 0x08, value: 1), .rtlAgc(true))
-        XCTAssertEqual(RtlTcpCommand(code: 0x09, value: 2), .directSampling(2))
-        XCTAssertEqual(RtlTcpCommand(code: 0x0D, value: 7), .gainByIndex(7))
-        XCTAssertEqual(RtlTcpCommand(code: 0x3F, value: 9), .unknown(code: 0x3F, value: 9))
+        XCTAssertEqual(RtlCommand(code: 0x05, value: UInt32(bitPattern: -3)), .frequencyCorrection(-3))
+        XCTAssertEqual(RtlCommand(code: 0x08, value: 1), .rtlAgc(true))
+        XCTAssertEqual(RtlCommand(code: 0x09, value: 2), .directSampling(2))
+        XCTAssertEqual(RtlCommand(code: 0x0D, value: 7), .gainByIndex(7))
+        XCTAssertEqual(RtlCommand(code: 0x3F, value: 9), .unknown(code: 0x3F, value: 9))
     }
 }
 

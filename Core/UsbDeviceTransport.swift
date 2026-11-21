@@ -1,30 +1,22 @@
 //
-//  HackRFTransport.swift — La couture qui rend le prototype testable.
+//  UsbDeviceTransport.swift — Le contrat entre l'application et un pilote
+//  DriverKit de SDR Driver Hub (protocole commun bhrf_shared.h).
 //
-//  Une seule interface, trois implémentations :
-//    • HackRFDriverKitTransport — le vrai user client IOKit ;
-//    • HackRFSimulatedTransport — un HackRF synthétique, qui refuse EXACTEMENT
-//      les mêmes requêtes et sait injecter overflow, erreur USB et terminaison ;
-//    • HackRFReplayTransport    — relit une capture, pour rejouer une séance.
-//
-//  Cette couture sert trois fois en vingt-quatre heures : développer l'interface
-//  sans monopoliser le HackRF pendant la mise au point du pilote, tester
-//  automatiquement en intégration continue, et répéter à blanc le scénario de
-//  demain — y compris les chemins qu'on ne veut surtout pas découvrir en direct
-//  devant la caméra (pilote non activé, retrait brutal, pilote obsolète).
+//  Indépendant de l'équipement : le backend RTL-SDR l'utilise avec le pilote
+//  BelksiriRtlSdrDriver ; un futur pilote USB parlerait le même protocole.
 //
 
 import Foundation
 
-/// Ce que le prototype sait dire de l'état du couple pilote + appareil.
+/// Ce que l'application sait dire de l'état du couple pilote + appareil.
 /// Six états, volontairement distincts : confondre « pilote non activé » et
-/// « aucun HackRF » est le pire défaut ergonomique possible ici, parce qu'il
-/// envoie l'utilisateur chercher une panne matérielle qui n'existe pas.
+/// « aucun périphérique » envoie l'utilisateur chercher une panne matérielle
+/// qui n'existe pas.
 enum ProbeState: String, CaseIterable, Sendable {
     case driverNotInstalled  = "Pilote non installé"
     case driverNotEnabled    = "Pilote non activé"
-    case waitingForDevice    = "En attente du HackRF"
-    case deviceAttached      = "HackRF détecté"
+    case waitingForDevice    = "En attente du périphérique"
+    case deviceAttached      = "Périphérique détecté"
     case receiving           = "Réception en cours"
     case terminated          = "Périphérique retiré"
 
@@ -43,9 +35,15 @@ enum TransportError: Error, LocalizedError {
     case callFailed(selector: UInt32, code: kern_return_t)
     case unexpectedSize(expected: Int, got: Int)
     case protocolMismatch(driver: UInt32, app: UInt32)
-    case denied(reason: BHRFDenyReason, request: UInt8)
+    case denied(reason: UInt32, request: UInt8)
     case usbError(kern_return_t)
     case notSupportedYet(String)
+    /// Protocole client v2 : la radio appartient à un autre client.
+    case busy
+    /// Protocole client v2 : opération réservée au propriétaire de la radio.
+    case notOwner
+    /// Protocole client v2 : refus du pilote, avec son statut (BRTLClientStatus).
+    case client(status: Int32, controller: Int32)
 
     var errorDescription: String? {
         switch self {
@@ -60,24 +58,27 @@ enum TransportError: Error, LocalizedError {
         case .unexpectedSize(let expected, let got):
             return "Structure de \(got) octets au lieu de \(expected) : le pilote et l'application ne s'accordent pas."
         case .protocolMismatch(let driver, let app):
-            return "Pilote en protocole v\(driver), application en v\(app). Débranchez puis rebranchez le HackRF pour recharger le pilote."
+            return "Pilote en protocole v\(driver), application en v\(app). Débranchez puis rebranchez le périphérique pour recharger le pilote."
         case .denied(let reason, let request):
-            return "Requête \(request) refusée par le pilote (\(reason.label))."
+            return "Requête \(request) refusée par le pilote (motif \(reason))."
         case .usbError(let k):
             return String(format: "Erreur USB (0x%08x).", UInt32(bitPattern: k))
         case .notSupportedYet(let what):
             return "\(what) n'est pas encore implémenté dans ce pilote."
+        case .busy:
+            return "Le récepteur est utilisé par une autre application (Spectrum Analyzer One)."
+        case .notOwner:
+            return "Le récepteur n'est pas attribué à SDR Driver Hub."
+        case .client(let status, let controller):
+            let name = String(cString: brtl_client_status_name(BRTLClientStatus(UInt32(bitPattern: status))))
+            return "Refus du pilote : \(name) (contrôleur \(controller))."
         }
     }
 }
 
 /// Le contrat. Volontairement étroit : tout ce qui peut vivre au-dessus (calcul
 /// de fréquence, cadence, journal) vit au-dessus, dans du code partagé et testé.
-protocol HackRFTransport: AnyObject {
-    /// Nom court affiché dans l'interface : l'utilisateur doit toujours savoir
-    /// s'il regarde du matériel ou une simulation.
-    var kind: TransportKind { get }
-
+protocol UsbDeviceTransport: AnyObject {
     var state: ProbeState { get }
 
     /// Ouvre le user client. Le premier appel effectué DOIT être la lecture de
@@ -117,33 +118,14 @@ protocol HackRFTransport: AnyObject {
     /// première session sur iPad.
     var linkDiagnostic: String { get }
 
-    /// Version d'API USB annoncée par l'appareil (bcdDevice), 0 si inconnue.
-    /// Sert à ne pas émettre une requête que le firmware ne connaît pas : une
-    /// requête trop récente se solde par un STALL, que rien ne distingue d'une
-    /// vraie panne.
-    var announcedBcdDevice: UInt16 { get }
-
     /// Destinataire des blocs drainés du ring (affichage, enregistrement).
     /// Appelé sur la file de drainage du transport. Nil : les blocs sont
     /// drainés, comptés et abandonnés — le comportement du prototype seul.
     var blockConsumer: RingBlockConsumer? { get set }
 }
 
-extension HackRFTransport {
-    /// Les transports non matériels n'ont rien à diagnostiquer.
+extension UsbDeviceTransport {
     var linkDiagnostic: String { "" }
-    var announcedBcdDevice: UInt16 { 0 }
-}
-
-enum TransportKind: String, Sendable {
-    case real      = "RÉEL"
-    case simulated = "SIMULÉ"
-    case replay    = "REJEU"
-
-    /// Ce qui distingue une mesure d'une répétition. Le champ `mode` du CSV en
-    /// dépend : un journal de simulation ne doit jamais pouvoir être confondu
-    /// avec une mesure matérielle.
-    var isMeasurement: Bool { self == .real }
 }
 
 // MARK: - Confort de construction des requêtes
@@ -180,15 +162,14 @@ enum BHRFDirectionSwift {
 
     var bmRequestType: UInt8 {
         switch self {
-        case .out: return UInt8(BHRF_BMREQ_OUT_VENDOR_DEVICE)
-        case .in:  return UInt8(BHRF_BMREQ_IN_VENDOR_DEVICE)
+        case .out: return UInt8(BRTL_BMREQ_OUT_VENDOR)
+        case .in:  return UInt8(BRTL_BMREQ_IN_VENDOR)
         }
     }
 }
 
 extension BHRFControlResponse {
     var statusValue: BHRFStatus { BHRFStatus(UInt32(bitPattern: status)) }
-    var denyReasonValue: BHRFDenyReason { BHRFDenyReason(denyReason) }
 
     /// Les octets réellement renvoyés par l'appareil.
     var payload: [UInt8] {
@@ -203,12 +184,6 @@ extension BHRFControlResponse {
     }
 }
 
-extension BHRFDenyReason {
-    /// Libellé lisible. Passe par la fonction C pour qu'il n'existe qu'UNE
-    /// table de libellés, partagée par le pilote, les tests et l'interface.
-    var label: String { String(cString: bhrf_deny_reason_name(self)) }
-}
-
 extension BHRFStatus {
-    var label: String { String(cString: bhrf_status_name(self)) }
+    var label: String { String(cString: bhrf_status_name(Int32(bitPattern: rawValue))) }
 }

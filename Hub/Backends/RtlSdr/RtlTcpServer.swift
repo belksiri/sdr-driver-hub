@@ -6,9 +6,14 @@
 //  tuner, vrai nombre de paliers), réglages par défaut rtl_tcp, démarrage du
 //  flux. Les blocs bruts du ring partent dans l'ordre par une file bornée : un
 //  client lent ne bloque jamais le drain, la perte est comptée. À la
-//  déconnexion : arrêt du flux (le RTL-SDR reste ouvert pour la suivante).
+//  déconnexion : arrêt du flux et RESTITUTION du récepteur, pour que
+//  Spectrum Analyzer One puisse l'ouvrir directement.
+//
+//  DÉVELOPPEMENT SEULEMENT : compilé sous HUB_DEV_RTLTCP, jamais dans un
+//  build App Store. Le chemin normal est l'accès direct au pilote.
 //
 
+#if HUB_DEV_RTLTCP
 import Foundation
 import Network
 
@@ -33,6 +38,8 @@ final class RtlTcpServer {
     var onListening: ((Bool, String?) -> Void)?
 
     private(set) var sentBytes: UInt64 = 0
+    /// Un client est connecté et servi (lu depuis n'importe quelle file).
+    var hasClient: Bool { queue.sync { client != nil } }
     private(set) var isListening = false
     private(set) var clientCount = 0
     /// Gain commands received and actually applied (all clients).
@@ -56,7 +63,12 @@ final class RtlTcpServer {
             do {
                 let params = NWParameters.tcp
                 params.allowLocalEndpointReuse = true
-                let l = try NWListener(using: params, on: NWEndpoint.Port(rawValue: Self.port)!)
+                // Boucle locale UNIQUEMENT : le service n'est joignable que
+                // depuis l'iPad lui-même (Spectrum Analyzer One), jamais depuis
+                // le réseau. Pas d'autorisation « réseau local » nécessaire.
+                params.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback),
+                                                         port: NWEndpoint.Port(rawValue: Self.port)!)
+                let l = try NWListener(using: params)
                 l.newConnectionHandler = { [weak self] c in self?.accept(c) }
                 l.stateUpdateHandler = { [weak self] st in
                     guard let self else { return }
@@ -146,7 +158,7 @@ final class RtlTcpServer {
         c.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, done, error in
             guard let self, self.clientId == id else { return }
             if let data, !data.isEmpty {
-                var direct: [RtlTcpCommand] = []
+                var direct: [RtlCommand] = []
                 for cmd in self.parser.feed(data) {
                     if GainCoalescer.isGain(cmd) {
                         self.gainCommandsReceived += 1
@@ -212,7 +224,10 @@ final class RtlTcpServer {
         sending = false
         sendQueue.clear()
         c.cancel()
-        device.queue.async { self.device.stopRx() }
+        // Rendre le récepteur : Spectrum Analyzer One doit pouvoir l'ouvrir
+        // directement dès que le client rtl_tcp de développement est parti.
+        device.queue.async { self.device.close() }
         DispatchQueue.main.async { self.onClientChanged?(nil) }
     }
 }
+#endif

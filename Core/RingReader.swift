@@ -13,7 +13,7 @@
 //  manifeste que sous charge, c'est-à-dire exactement à 20 Msps.
 //
 //  Ce lecteur est branché sur la mémoire réellement mappée par
-//  IOConnectMapMemory64 (voir HackRFDriverKitTransport). Il reste exercé par les
+//  IOConnectMapMemory64 (voir DriverKitUsbTransport). Il reste exercé par les
 //  tests et par le transport simulé, ce qui permet de valider la sémantique sans
 //  matériel — et c'est ainsi qu'elle a été mise au point avant que le pilote ne
 //  la produise.
@@ -71,9 +71,9 @@ final class RingReader {
         guard header.magic == UInt32(BHRF_RING_MAGIC) else {
             throw TransportError.notSupportedYet("Ring inconnu (magic \(header.magic))")
         }
-        guard header.layoutVersion == BHRF.protocolVersion else {
+        guard header.layoutVersion == DriverProtocol.ringLayoutVersion else {
             throw TransportError.protocolMismatch(driver: header.layoutVersion,
-                                                  app: BHRF.protocolVersion)
+                                                  app: DriverProtocol.ringLayoutVersion)
         }
         let needed = Int(header.headerBytes) + Int(header.blockCount) * Int(header.blockBytes)
         guard mappedBytes >= needed else {
