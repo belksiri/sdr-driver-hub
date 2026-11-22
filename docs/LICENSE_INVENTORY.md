@@ -65,7 +65,7 @@ d'abord la question de l'étendue du copyleft.
 | La signature imposée par Apple empêche-t-elle d'exercer la GPL ? | **[AVIS JURIDIQUE]** | Un utilisateur ne peut installer une version modifiée qu'avec un compte développeur et les entitlements DriverKit. La GPL-2.0 (contrairement à la GPLv3 § 6 « Installation Information ») n'impose pas de fournir les clés de signature ; le point est donc moins critique qu'avec la GPLv3, mais il touche à l'esprit du § 6. |
 | L'étendue du copyleft au code Belksiri | **[AVIS JURIDIQUE]** | voir ci-dessus. |
 | Spectrum Analyzer One, client du pilote | **[AVIS JURIDIQUE]** | Spectrum Analyzer One (autre app) n'embarque aucun code GPL : il ouvre le pilote par IOKit et lui envoie des commandes et lit un ring d'échantillons, comme il lisait auparavant un socket rtl_tcp. La lecture habituelle traite ce mode (communication entre exécutables distincts) comme une agrégation ; l'échange de structures binaires partagées (`brtl_client_protocol.h`, ring mappé) est à faire confirmer. L'en-tête d'interface copié dans Spectrum Analyzer One ne contient aucun code de librtlsdr. |
-| Notices, texte de licence, sources | prêt côté technique | Notices et GPL embarquées et affichées ; archive de sources reproductible. **Manque : l'adresse publique** où publier les sources (`HUB_SOURCE_URL`), à fournir par Mounir. |
+| Notices, texte de licence, sources | prêt côté technique | Notices et GPL embarquées et affichées ; archive de sources reproductible. Adresse publique des sources (`HUB_SOURCE_URL`) : <https://github.com/belksiri/sdr-driver-hub>. |
 
 Conclusion : l'application **n'est pas déclarée publiable** au regard des
 licences tant que ces trois points n'ont pas reçu un avis juridique et que

@@ -12,6 +12,7 @@
 #                     HUB_DIST, la condition HUB_DEV_RTLTCP les compile, et
 #                     UIBackgroundModes=audio est ajouté au paquet)
 #   HUB_SOURCE_URL    adresse des sources correspondantes affichée dans l'app
+#                     (par défaut : https://github.com/belksiri/sdr-driver-hub)
 #   HUB_BUILD_NUMBER  numéro de build imposé (sinon AAAAMMJJ.HHMM, croissant)
 
 require 'xcodeproj'
@@ -26,7 +27,7 @@ BUILD_ID = Time.now.strftime('%m%d%H%M').to_i          # identifiant interne du 
 MARKETING_VERSION = '1.0.0'
 BUILD_NUMBER = ENV.fetch('HUB_BUILD_NUMBER', Time.now.strftime('%Y%m%d.%H%M'))
 DIST = ENV['HUB_DIST'] == '1'
-SOURCE_URL = ENV.fetch('HUB_SOURCE_URL', '')
+SOURCE_URL = ENV.fetch('HUB_SOURCE_URL', 'https://github.com/belksiri/sdr-driver-hub')
 DRIVERKIT_DEPLOYMENT_TARGET = '21.0'
 
 FileUtils.rm_rf(PROJECT_PATH)

@@ -32,9 +32,10 @@ Relevé le 2026-11-20. Rien n'a été téléversé ni soumis ; aucune demande n'
    étendue du copyleft à l'application, compatibilité des conditions de
    l'App Store avec la GPL-2.0 § 6, licence du code Belksiri
    (`docs/LICENSE_INVENTORY.md`).
-3. **Adresse des sources correspondantes** — `HUB_SOURCE_URL` est vide :
-   l'écran des licences n'a pas de lien « Code source ». À fournir avant
-   l'archive soumise.
+3. **Adresse des sources correspondantes — levé.** `HUB_SOURCE_URL` vaut
+   <https://github.com/belksiri/sdr-driver-hub> ; l'écran des licences affiche le
+   lien « Code source ». Reste à y déposer l'archive de chaque version
+   distribuée.
 4. **Arrière-plan par un son silencieux — levé dans le code.** Spectrum
    Analyzer One ouvre désormais le pilote directement (protocole client v2,
    `docs/DIRECT_IQ_PATH.md`) : SDR Driver Hub n'a plus à tourner pendant

@@ -146,7 +146,7 @@ changements de fréquence, Stop/Start répétés, HackRF.
 - **Licence** : avis juridique nécessaire sur la GPL-2.0 dans l'App Store,
   et sur Spectrum Analyzer One en tant que client d'un pilote qui contient
   librtlsdr.
-- **Sources correspondantes** : `HUB_SOURCE_URL` n'est pas configurée ;
-  l'écran des licences n'affiche alors aucun lien. Blocage avant soumission.
+- **Sources correspondantes** : `HUB_SOURCE_URL` vaut
+  <https://github.com/belksiri/sdr-driver-hub> ; l'écran des licences affiche le lien.
 - **Arrière-plan** : la réception suit la vie de Spectrum Analyzer One ; le
   comportement quand iPadOS suspend l'app n'a pas été essayé [NT].

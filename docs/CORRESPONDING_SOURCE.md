@@ -32,6 +32,7 @@ local (journal, build, donnée d'appareil). Elle comprend :
 3. Garder chaque archive publiée au moins trois ans après la dernière
    distribution du binaire correspondant.
 
-`HUB_SOURCE_URL` est vide aujourd'hui : l'écran des licences n'affiche alors
-pas de lien, et l'archive App Store ne doit pas être soumise (blocage listé
-dans `docs/APP_STORE_READINESS.md`).
+`HUB_SOURCE_URL` vaut par défaut l'adresse publique du dépôt,
+<https://github.com/belksiri/sdr-driver-hub> : l'écran des licences affiche ce lien
+« Code source ». Chaque archive de sources d'une version distribuée y est
+déposée (étape 2 ci-dessus).
