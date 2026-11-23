@@ -58,9 +58,11 @@ public enum IqTransportKind: Equatable, Sendable {
     /// Le client ouvre LUI-MÊME le pilote (user client DriverKit, protocole
     /// client v2) : le compagnon n'a pas besoin de tourner pendant l'écoute.
     case directDriver
+    #if HUB_DEV_RTLTCP
     /// Protocole rtl_tcp sur la boucle locale (127.0.0.1:port). Builds de
-    /// développement seulement.
+    /// développement seulement : ce cas n'existe pas dans un build App Store.
     case rtlTcp(port: UInt16)
+    #endif
 }
 
 public enum GainControl: Equatable, Sendable {
@@ -222,10 +224,10 @@ public enum SpectrumReadiness: Equatable, Sendable {
     case canConnect
     case notReady(BackendUserError)
 
-    /// `serviceRequired` : vrai seulement quand Spectrum Analyzer One ne peut
-    /// atteindre le matériel QUE par le service local (aucun accès direct).
-    public static func evaluate(availability: BackendAvailability, serviceRequired: Bool = false,
-                                serviceRunning: Bool, clientConnected: Bool,
+    /// Spectrum Analyzer One ouvre le pilote lui-même (protocole client v2) :
+    /// seul l'état du pilote et du matériel compte, jamais un service du
+    /// compagnon (qui n'existe que dans les builds de développement).
+    public static func evaluate(availability: BackendAvailability, clientConnected: Bool,
                                 deviceName: String) -> SpectrumReadiness {
         if clientConnected { return .connected }
         switch availability {
@@ -241,11 +243,6 @@ public enum SpectrumReadiness: Equatable, Sendable {
         case .failed(let e):
             return .notReady(e)
         case .ready, .streaming:
-            guard serviceRunning || !serviceRequired else {
-                return .notReady(BackendUserError(
-                    "The local service is stopped.",
-                    recovery: "Start the service so that Spectrum Analyzer One can connect."))
-            }
             return .canConnect
         }
     }

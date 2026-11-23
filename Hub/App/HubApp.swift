@@ -49,20 +49,28 @@ struct HubView: View {
                 }
 
                 #if HUB_DEV_RTLTCP
+                // Textes dans la table « Development », embarquée seulement dans
+                // les builds de développement (jamais dans un build App Store).
                 Section {
-                    Toggle("rtl_tcp service", isOn: Binding(get: { model.serviceOn },
-                                                            set: { model.serviceOn = $0 }))
-                    LabeledContent("Status") {
-                        Text(b.isServiceRunning ? "Running" : "Stopped")
+                    Toggle(isOn: Binding(get: { model.serviceOn },
+                                         set: { model.serviceOn = $0 })) {
+                        Text("rtl_tcp service", tableName: "Development")
+                    }
+                    LabeledContent {
+                        Text(b.isServiceRunning ? "Running" : "Stopped", tableName: "Development")
                             .foregroundStyle(b.isServiceRunning ? .green : .secondary)
+                    } label: {
+                        Text("Status", tableName: "Development")
                     }
                     if let e = b.lastError {
-                        Text(LocalizedStringKey(e.message)).foregroundStyle(.red)
+                        Text(LocalizedStringKey(e.message), tableName: "Development")
+                            .foregroundStyle(.red)
                     }
                 } header: {
-                    Text("Development")
+                    Text("Development", tableName: "Development")
                 } footer: {
-                    Text("Development builds only: rtl_tcp on 127.0.0.1:1234, kept alive in the background. Never part of an App Store build.")
+                    Text("Development builds only: rtl_tcp on 127.0.0.1:1234, kept alive in the background. Never part of an App Store build.",
+                         tableName: "Development")
                 }
                 #endif
 

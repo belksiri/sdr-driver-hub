@@ -58,9 +58,8 @@ final class SdrBackendTests: XCTestCase {
     }
 
     func testSpectrumReadinessTellsWhatToDo() {
-        func eval(_ a: BackendAvailability, running: Bool = true, client: Bool = false) -> SpectrumReadiness {
-            .evaluate(availability: a, serviceRequired: true, serviceRunning: running,
-                      clientConnected: client, deviceName: "RTL-SDR")
+        func eval(_ a: BackendAvailability, client: Bool = false) -> SpectrumReadiness {
+            .evaluate(availability: a, clientConnected: client, deviceName: "RTL-SDR")
         }
         XCTAssertEqual(eval(.ready), .canConnect)
         XCTAssertEqual(eval(.streaming, client: true), .connected)
@@ -69,8 +68,6 @@ final class SdrBackendTests: XCTestCase {
         guard case .notReady(let e2) = eval(.waitingForDevice) else { return XCTFail() }
         XCTAssertTrue(e2.message.contains("RTL-SDR"))
         XCTAssertTrue(e2.recovery!.contains("Drivers"), "the driver may simply be off")
-        guard case .notReady(let e3) = eval(.ready, running: false) else { return XCTFail() }
-        XCTAssertTrue(e3.message.contains("stopped"))
         let removed = BackendUserError("The RTL-SDR was unplugged.", recovery: "Plug it back in.")
         XCTAssertEqual(eval(.failed(removed)), .notReady(removed))
     }
@@ -79,19 +76,15 @@ final class SdrBackendTests: XCTestCase {
     /// pilote lui-même. Le compagnon arrêté, ou sans service, ne l'en empêche
     /// pas : seul l'état du pilote et du matériel compte.
     func testDirectDriverAccessDoesNotDependOnTheCompanionService() {
-        func eval(_ a: BackendAvailability, running: Bool, client: Bool = false) -> SpectrumReadiness {
-            .evaluate(availability: a, serviceRequired: false, serviceRunning: running,
-                      clientConnected: client, deviceName: "RTL-SDR")
+        func eval(_ a: BackendAvailability, client: Bool = false) -> SpectrumReadiness {
+            .evaluate(availability: a, clientConnected: client, deviceName: "RTL-SDR")
         }
-        XCTAssertEqual(eval(.ready, running: false), .canConnect)
-        XCTAssertEqual(eval(.streaming, running: false), .canConnect)
-        XCTAssertEqual(eval(.streaming, running: false, client: true), .connected)
-        guard case .notReady = eval(.driverNotEnabled, running: false) else { return XCTFail() }
-        guard case .notReady = eval(.waitingForDevice, running: false) else { return XCTFail() }
-        // Par défaut, le service n'est PAS requis : c'est le chemin normal.
-        XCTAssertEqual(SpectrumReadiness.evaluate(availability: .ready, serviceRunning: false,
-                                                  clientConnected: false, deviceName: "RTL-SDR"),
-                       .canConnect)
+        // Aucun service du compagnon n'intervient : le pilote prêt suffit.
+        XCTAssertEqual(eval(.ready), .canConnect)
+        XCTAssertEqual(eval(.streaming), .canConnect)
+        XCTAssertEqual(eval(.streaming, client: true), .connected)
+        guard case .notReady = eval(.driverNotEnabled) else { return XCTFail() }
+        guard case .notReady = eval(.waitingForDevice) else { return XCTFail() }
         XCTAssertNotEqual(IqTransportKind.directDriver, IqTransportKind.rtlTcp(port: 1234))
     }
 

@@ -9,7 +9,10 @@ let package = Package(
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [.library(name: "HubCore", targets: ["HubCore"])],
     targets: [
-        .target(name: "HubCore"),
+        // Le paquet sert aux tests sur le Mac, qui couvrent aussi le protocole
+        // rtl_tcp de développement. L'app iPad compile ces sources avec ses
+        // propres conditions : sans HUB_DEV_RTLTCP dans un build App Store.
+        .target(name: "HubCore", swiftSettings: [.define("HUB_DEV_RTLTCP")]),
         .testTarget(name: "HubCoreTests", dependencies: ["HubCore"]),
     ]
 )

@@ -191,7 +191,7 @@ final class RtlSdrBackend: SdrBackend {
             return .streaming
         case .terminated:
             return .failed(BackendUserError("The RTL-SDR was unplugged.",
-                                            recovery: "Plug it back in; the service resumes by itself."))
+                                            recovery: "Plug it back in; the driver restarts by itself."))
         }
     }
 

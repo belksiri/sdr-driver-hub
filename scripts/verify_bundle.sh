@@ -82,6 +82,17 @@ if [ "$DIST" = "--dist" ]; then
   { otool -L "$A/SDRDriverHub" | grep -q "AVF" || strings -a "$A/SDRDriverHub" | grep -q "keep-alive audio"; } \
     && bad "maintien audio dans le build App Store" \
     || ok "aucun maintien audio (AVFAudio non lié)"
+  # Nulle part dans le paquet (binaires, textes, notices, traductions, pilote) :
+  # ni mention de rtl_tcp ou de son transport, ni service local, ni adresse de
+  # boucle locale, ni file d'envoi, ni écouteur réseau. Insensible à la casse.
+  hits=""
+  for pat in rtl_tcp rtltcp RTL0 IqSendQueue NWListener NWConnection AVAudio "local service" "127.0.0.1" UIBackgroundModes; do
+    f=$(grep -rlaiF "$pat" "$A" 2>/dev/null | sed "s#^$A/##" | tr '\n' ' ')
+    [ -n "$f" ] && hits="$hits [$pat: $f]"
+  done
+  [ -z "$hits" ] && ok "aucune trace de développement dans le paquet (rtl_tcp, service local, réseau, audio)" \
+    || bad "traces de développement :$hits"
+  [ ! -e "$A/fr.lproj/Development.strings" ] && ok "pas de textes de l'écran Development" || bad "Development.strings embarqué"
   echo "$DE" | grep -A4 "transport.usb" | grep -q "<integer>3034</integer>" && ok "dext : transport.usb idVendor 3034 (Realtek)" || bad "transport.usb du dext"
   echo "$AE" | grep -A1 "get-task-allow" | grep -q "<true/>" \
     && echo "INFO get-task-allow présent : archive signée en développement, retiré au ré-export App Store" \

@@ -176,6 +176,12 @@ end
 loc = hg.new_variant_group('Localizable.strings')
 loc.new_reference('Hub/Resources/fr.lproj/Localizable.strings').name = 'fr'
 app.resources_build_phase.add_file_reference(loc)
+# Textes de l'écran « Development » : builds de développement SEULEMENT.
+unless DIST
+  dev = hg.new_variant_group('Development.strings')
+  dev.new_reference('Hub/Resources/fr.lproj/Development.strings').name = 'fr'
+  app.resources_build_phase.add_file_reference(dev)
+end
 ips = hg.new_variant_group('InfoPlist.strings')
 %w[en fr].each { |l| ips.new_reference("Hub/Resources/#{l}.lproj/InfoPlist.strings").name = l }
 app.resources_build_phase.add_file_reference(ips)

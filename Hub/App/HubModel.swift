@@ -49,8 +49,6 @@ final class HubModel: ObservableObject {
     var readiness: SpectrumReadiness {
         let b = backend
         return .evaluate(availability: b.availability,
-                         serviceRequired: !b.capabilities.transports.contains(.directDriver),
-                         serviceRunning: b.isServiceRunning,
                          clientConnected: b.statistics().clientConnected, deviceName: b.displayName)
     }
 

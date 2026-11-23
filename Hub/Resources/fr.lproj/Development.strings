@@ -1,0 +1,11 @@
+/* SDR Driver Hub — français, écran « Development ». Table embarquée
+   UNIQUEMENT dans les builds de développement (HUB_DEV_RTLTCP) : jamais dans
+   un build App Store (HUB_DIST=1). */
+
+"Development" = "Développement";
+"rtl_tcp service" = "Service rtl_tcp";
+"Status" = "État";
+"Running" = "Actif";
+"Stopped" = "Arrêté";
+"The local service could not start." = "Le service local n'a pas pu démarrer.";
+"Development builds only: rtl_tcp on 127.0.0.1:1234, kept alive in the background. Never part of an App Store build." = "Builds de développement uniquement : rtl_tcp sur 127.0.0.1:1234, maintenu en arrière-plan. Jamais dans un build App Store.";
