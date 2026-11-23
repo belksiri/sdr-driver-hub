@@ -46,16 +46,15 @@ Mounir, `Design/AppIcon/AppIcon-source-1254.png`).
 
 | Partie | Contenu | Licence déclarée |
 |---|---|---|
-| `Hub/`, `Core/`, `HubCore/` | application SwiftUI, transport DriverKit, cœur pur | **aucune** |
-| `Driver/` (hors `dkcompat/`) | pilote DriverKit `BelksiriRtlSdrDriver` : liste blanche, ring, protocole client v2 (`brtl_client_protocol.h`, `brtl_client_policy.c`, `brtl_bus.c`). **Compilé dans le même exécutable que librtlsdr** | **aucune** |
-| `scripts/` | génération, construction, vérification | **aucune** |
+| `Hub/`, `Core/`, `HubCore/` | application SwiftUI, transport DriverKit, cœur pur | GPL-2.0-or-later (`LICENSE` à la racine) |
+| `Driver/` (hors `dkcompat/`) | pilote DriverKit `BelksiriRtlSdrDriver` : liste blanche, ring, protocole client v2 (`brtl_client_protocol.h`, `brtl_client_policy.c`, `brtl_bus.c`). **Compilé dans le même exécutable que librtlsdr** | GPL-2.0-or-later (`LICENSE` à la racine) |
+| `scripts/` | génération, construction, vérification | GPL-2.0-or-later (`LICENSE` à la racine) |
 
-**[DÉCISION MOUNIR + AVIS JURIDIQUE]** Le code du pilote est compilé dans le
-même exécutable que librtlsdr ; celui de l'application est livré dans le même
-paquet et lui parle par le user client.
-L'option la plus simple et la plus sûre au regard de la GPL est de publier
-tout le dépôt sous GPL-2.0-or-later. Toute autre option suppose de trancher
-d'abord la question de l'étendue du copyleft.
+**Décision prise (commit e832160, 2026-11-22) :** tout le dépôt est publié
+sous GPL-2.0-or-later (`LICENSE` à la racine). Le code du pilote, compilé dans
+le même exécutable que librtlsdr, et celui de l'application, livré dans le
+même paquet, sont donc sous la même licence que librtlsdr : la question de
+l'étendue du copyleft ne se pose plus pour SDR Driver Hub lui-même.
 
 ## Compatibilité GPL / App Store / signature Apple
 
@@ -63,12 +62,14 @@ d'abord la question de l'étendue du copyleft.
 |---|---|---|
 | L'App Store impose-t-il des restrictions que la GPL-2.0 § 6 interdit ? | **[AVIS JURIDIQUE]** | Les conditions d'utilisation de l'App Store (règles d'usage, nombre d'appareils, DRM FairPlay du paquet) ont été jugées incompatibles avec la GPL par certains détenteurs de droits (retrait de VLC en 2011 à la demande d'un contributeur). D'autres applications GPL restent publiées, avec l'accord de tous les détenteurs ou sans contestation. Aucun accord des détenteurs de librtlsdr n'a été demandé. |
 | La signature imposée par Apple empêche-t-elle d'exercer la GPL ? | **[AVIS JURIDIQUE]** | Un utilisateur ne peut installer une version modifiée qu'avec un compte développeur et les entitlements DriverKit. La GPL-2.0 (contrairement à la GPLv3 § 6 « Installation Information ») n'impose pas de fournir les clés de signature ; le point est donc moins critique qu'avec la GPLv3, mais il touche à l'esprit du § 6. |
-| L'étendue du copyleft au code Belksiri | **[AVIS JURIDIQUE]** | voir ci-dessus. |
+| L'étendue du copyleft au code Belksiri | levé | tout le dépôt est sous GPL-2.0-or-later (voir ci-dessus). |
 | Spectrum Analyzer One, client du pilote | **[AVIS JURIDIQUE]** | Spectrum Analyzer One (autre app) n'embarque aucun code GPL : il ouvre le pilote par IOKit et lui envoie des commandes et lit un ring d'échantillons, comme il lisait auparavant un socket rtl_tcp. La lecture habituelle traite ce mode (communication entre exécutables distincts) comme une agrégation ; l'échange de structures binaires partagées (`brtl_client_protocol.h`, ring mappé) est à faire confirmer. L'en-tête d'interface copié dans Spectrum Analyzer One ne contient aucun code de librtlsdr. |
 | Notices, texte de licence, sources | prêt côté technique | Notices et GPL embarquées et affichées ; archive de sources reproductible. Adresse publique des sources (`HUB_SOURCE_URL`) : <https://github.com/belksiri/sdr-driver-hub>. |
 
 Conclusion : l'application **n'est pas déclarée publiable** au regard des
-licences tant que ces trois points n'ont pas reçu un avis juridique et que
-l'adresse des sources n'est pas fixée. La voie qui supprime la question est
+licences tant que les points **[AVIS JURIDIQUE]** restants (App Store et GPL
+§ 6, signature, Spectrum Analyzer One client du pilote) n'ont pas reçu un avis
+et que l'archive des sources de la version n'est pas publiée à l'adresse
+affichée. La voie qui supprime la question est
 un contrôleur RTL2832U indépendant de librtlsdr (non GPL) derrière la même
 interface `brtl_transport`.

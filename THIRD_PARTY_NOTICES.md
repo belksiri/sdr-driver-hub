@@ -27,8 +27,8 @@ Copyright holders named in the file headers (no header was removed or altered):
 
 Files compiled: `src/librtlsdr.c`, `src/tuner_r82xx.c`, `src/tuner_e4k.c`,
 `src/tuner_fc0012.c`, `src/tuner_fc0013.c`, `src/tuner_fc2580.c` and the
-headers of `include/`. Not used: the command-line tools (`rtl_sdr`,
-`rtl_tcp`…), and libusb.
+headers of `include/`. Not used: the upstream command-line programs
+(`src/rtl_*.c`), and libusb.
 
 ### Modifications
 
@@ -57,8 +57,8 @@ Licensed GPL-2.0-or-later (SPDX header in each file):
 The rest of the DriverKit driver (`Driver/`, compiled into the same executable
 as librtlsdr) and the application (`Hub/`, `Core/`, `HubCore/`, which contains
 no librtlsdr code and talks to the driver through its user client) are
-Belksiri code. **Their licence for distribution has not been declared yet:
-see "Open legal points" below.**
+Belksiri code, distributed under the GNU General Public License version 2 or
+later, like the whole repository (`LICENSE` at its root).
 
 ## Apple frameworks
 
@@ -86,4 +86,5 @@ instructions, is published at the address shown in the application
    § 6 forbids adding. Several GPL copyright holders have considered App Store
    distribution incompatible in the past. Not reviewed by a lawyer for this
    project.
-3. **Licence of the Belksiri code** listed above as undeclared.
+3. ~~Licence of the Belksiri code~~ — declared: GPL-2.0-or-later for the
+   whole repository (`LICENSE`).

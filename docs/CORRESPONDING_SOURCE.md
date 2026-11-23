@@ -36,3 +36,32 @@ local (journal, build, donnée d'appareil). Elle comprend :
 <https://github.com/belksiri/sdr-driver-hub> : l'écran des licences affiche ce lien
 « Code source ». Chaque archive de sources d'une version distribuée y est
 déposée (étape 2 ci-dessus).
+
+## Version 1.0.0 : procédure de publication
+
+1. Les commits de la version sont faits, l'arbre est propre.
+2. `HUB_SOURCE_URL` est fixé à l'adresse **publique exacte** du tag
+   (`https://github.com/<propriétaire confirmé>/sdr-driver-hub/tree/v1.0.0`),
+   dans `scripts/generate_project.rb`, puis commité. L'adresse n'est écrite
+   qu'une fois le propriétaire du dépôt confirmé ; elle n'est jamais devinée.
+3. Le tag `v1.0.0` est posé sur ce commit, celui du paquet candidat.
+4. `scripts/make_corresponding_source.sh` produit l'archive depuis ce commit ;
+   elle est reconstruite à part (voir ci-dessous), puis jointe à la release
+   GitHub `v1.0.0` avec son `.txt` (commit, SHA-256, version de Xcode).
+5. Le paquet App Store est construit depuis le même commit.
+
+### Contrôle de reconstruction
+
+Depuis l'archive extraite, sans le dépôt Git : `scripts/test_driver_logic.sh`,
+`(cd HubCore && swift test)`, puis le build `HUB_DIST=1` non signé et
+`scripts/verify_bundle.sh --dist` (`BUILDING.md`). Seuls les contrôles de
+signature doivent échouer sur un build non signé.
+
+### Provenance de librtlsdr (vérifiée le 2026-11-23)
+
+Les fichiers de `Controller/librtlsdr/` ont été comparés à osmocom rtl-sdr
+`84195f169f5b4b7dc06a10efb1e210d02b49e51c` (dépôt public
+<https://github.com/osmocom/rtl-sdr>) : 13 fichiers et `COPYING` identiques
+octet pour octet ; `include/rtl-sdr.h` et `src/librtlsdr.c` diffèrent, et
+`LOCAL_CHANGES.patch` appliqué à l'amont reproduit exactement ces deux
+fichiers. Le détail des modifications est dans `THIRD_PARTY_NOTICES.md`.
