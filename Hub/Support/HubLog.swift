@@ -4,7 +4,10 @@
 //  Par défaut : en MÉMOIRE seulement (les dernières lignes, pour le diagnostic
 //  à l'écran). Aucun fichier, aucune sortie système en Release.
 //
-//  Diagnostic opt-in : un fichier marqueur `Documents/hub_debug.enable`
+//  Builds de développement SEULEMENT (HUB_DEV_RTLTCP, jamais dans un build
+//  App Store, où il ne serait de toute façon pas atteignable : déposer un
+//  fichier dans le conteneur demande un build signé en développement) —
+//  diagnostic opt-in : un fichier marqueur `Documents/hub_debug.enable`
 //  (déposé par le développeur, `xcrun devicectl device copy to …`) active au
 //  lancement suivant l'écriture de `Documents/hub_events.log`, borné à 1 Mo.
 //  Le retirer désactive l'écriture ; le fichier journal est alors supprimé.
@@ -16,9 +19,11 @@ import Foundation
 
 final class HubLog {
     static let shared = HubLog()
+    #if HUB_DEV_RTLTCP
     static let markerName = "hub_debug.enable"
     static let disableMarkerName = "hub_debug.disable"
     static let fileName = "hub_events.log"
+    #endif
 
     private let lock = NSLock()
     private var handle: FileHandle?
@@ -27,6 +32,7 @@ final class HubLog {
     private(set) var writesFile = false
 
     private init() {
+        #if HUB_DEV_RTLTCP
         guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let marker = docs.appendingPathComponent(Self.markerName)
         let url = docs.appendingPathComponent(Self.fileName)
@@ -46,6 +52,7 @@ final class HubLog {
         handle = try? FileHandle(forWritingTo: url)
         size = (try? handle?.seekToEnd()) ?? 0
         writesFile = handle != nil
+        #endif
     }
 
     func log(_ text: String) {
