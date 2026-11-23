@@ -1,8 +1,8 @@
 # SDR Driver Hub 1.0.0 — fiche App Store Connect
 
-**Préparée le 2026-11-23. Aucune fiche n'a été créée, rien n'a été
-téléversé ni soumis.** La création de la fiche attend l'autorisation
-explicite de Mounir ; la soumission à la revue, son GO final.
+**Préparée le 2026-11-23 ; fiche créée le 2026-11-24 (Apple ID
+`6838519640`). Aucun build téléversé, rien soumis.** Le téléversement et la
+soumission attendent un nouveau GO explicite de Mounir. État réel : § 8.
 
 ## 1. Identité
 
@@ -36,9 +36,9 @@ Politique de confidentialité : projet dans [`PRIVACY_POLICY.md`](PRIVACY_POLICY
 | Champ | État |
 |---|---|
 | URL de la politique de confidentialité | **à fournir** (publication de `PRIVACY_POLICY.md`) |
-| URL d'assistance | **à fournir** — candidat : la page du dépôt public, une fois son propriétaire confirmé |
+| URL d'assistance | https://github.com/belksiri/sdr-driver-hub (dépôt public, tickets ouverts) |
 | URL marketing (facultative) | **à fournir** ou laisser vide |
-| Code source (dans l'app, écran Licences) | `HUB_SOURCE_URL`, voir `docs/CORRESPONDING_SOURCE.md` |
+| Code source (dans l'app, écran Licences) | https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0 (`HUB_SOURCE_URL`) |
 
 Aucune de ces adresses n'est inventée ici.
 
@@ -165,3 +165,31 @@ recommandée**, l'examen demandant un RTL-SDR.
 - [ ] Avis juridique sur la GPL et l'App Store (`docs/LICENSE_INVENTORY.md`)
 - [ ] Téléversement, puis soumission : **GO explicite uniquement**
 - [ ] Après création de la fiche : relever `https://apps.apple.com/app/id<identifiant>` pour Spectrum Analyzer One (`HUB_APP_STORE_URL`, passe séparée)
+
+## 8. État de la fiche dans App Store Connect (2026-11-24)
+
+Apple ID **6838519640** ; URL App Store prévue
+<https://apps.apple.com/app/id6838519640> (active seulement après
+publication). SKU `sdr-driver-hub`, plateforme iOS, langue principale
+anglais (États-Unis), accès complet.
+
+| Champ | État |
+|---|---|
+| Nom, sous-titre EN | saisis (« SDR Driver Hub », « RTL-SDR driver for iPad ») |
+| Catégorie principale | Utilitaires |
+| Version | 1.0.0, publication **manuelle** après approbation |
+| Texte promotionnel, description, mots-clés EN | saisis (§ 4) |
+| URL d'assistance | https://github.com/belksiri/sdr-driver-hub |
+| Copyright | « 2026 Belksiri » (en-têtes des sources) |
+| Connexion requise | décochée (l'app n'a pas de compte) |
+| Prix | 0,00 dans 175 pays ou régions |
+| Confidentialité | « Données non collectées » enregistré ; **non publié** : URL de la politique manquante |
+| Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`), aucun build envoyé |
+| **URL de la politique de confidentialité** | **manquante** : publier `PRIVACY_POLICY.md` complété (`[DATE]`, `[CONTACT]`) à une adresse publique stable |
+| **Coordonnées de revue** (prénom, nom, téléphone, e-mail) | **à saisir par Mounir** ; tant qu'elles manquent, ASC refuse d'enregistrer les notes de revue (texte prêt, § 6, sans la phrase sur la vidéo) |
+| **Classification par âge** | questionnaire non rempli |
+| **Droits relatifs au contenu** | non renseignés |
+| **Disponibilité par pays** | non configurée (la Chine continentale exige des documents de conformité) |
+| **Localisation française** | non ajoutée (textes prêts, § 1 et § 4) |
+| **Captures iPad 13 pouces** | aucune (§ 5) |
+| Build | aucun ; téléversement sur GO seulement |

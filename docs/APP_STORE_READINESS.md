@@ -1,7 +1,8 @@
 # SDR Driver Hub 1.0.0 — état de préparation App Store
 
-Relevé le 2026-11-23. Rien n'a été téléversé ni soumis ; aucune demande n'a
-été envoyée à Apple ; aucune fiche App Store Connect n'a été créée.
+Relevé le 2026-11-24. Rien n'a été téléversé ni soumis. Demande DriverKit
+envoyée (`GZ4VQV28Y2`) ; fiche App Store Connect créée (Apple ID
+`6838519640`), sans build.
 
 SDR Driver Hub est publié **avant** Spectrum Analyzer One, gratuitement, sans
 achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
@@ -27,7 +28,8 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
 
 1. **Entitlements DriverKit de distribution** — le compte n'a que des profils
    de développement (aucun profil App Store pour l'app ni pour le pilote).
-   Demande prête, **non envoyée** : [`appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md`](appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md).
+   Demande **envoyée le 2026-11-24**, identifiant `GZ4VQV28Y2`, en attente
+   de réponse : [`appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md`](appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md) § 5.
    Le vendeur 0x0BDA n'appartient pas à Belksiri.
 2. **Dépôt public — levé.** Dépôt officiel `belksiri/sdr-driver-hub`
    (confirmé le 2026-11-24) ; `HUB_SOURCE_URL` =
@@ -36,9 +38,11 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
 3. **Licence GPL et App Store** — points **[AVIS JURIDIQUE]** restants
    (`LICENSE_INVENTORY.md`) : App Store et GPL-2.0 § 6, signature Apple,
    Spectrum Analyzer One client du pilote.
-4. **Métadonnées** — URL de confidentialité et d'assistance à publier,
-   captures iPad (iPad indisponible pour cette passe), vidéo de démonstration
-   pour la revue ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md)).
+4. **Fiche App Store Connect** — créée ; restent l'URL de la politique de
+   confidentialité (à publier), les coordonnées de revue, la classification
+   par âge, les droits sur le contenu, la disponibilité par pays, la
+   localisation française et les captures iPad 13 pouces
+   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8).
 5. **Version du pilote** — `1.0.0` alors que l'app porte un build daté : à
    confirmer au premier envoi à App Store Connect.
 

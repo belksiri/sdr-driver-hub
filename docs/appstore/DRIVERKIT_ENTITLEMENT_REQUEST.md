@@ -1,7 +1,8 @@
 # Demande d'entitlements DriverKit — SDR Driver Hub 1.0.0
 
-**Préparée le 2026-11-23 ; envoi autorisé par Mounir le 2026-11-24.** Le
-texte envoyé, sa date et l'accusé de réception sont consignés au § 5.
+**Préparée le 2026-11-23 ; envoyée le 2026-11-24, demande Apple
+`GZ4VQV28Y2`, en attente de réponse.** Le texte réellement envoyé est au § 5 ;
+le § 3 en est la version longue, non envoyée telle quelle.
 
 Formulaire Apple : *Request a System Extension or DriverKit entitlement*
 (compte développeur › Contact › DriverKit). Le texte à coller est en anglais,
@@ -50,7 +51,10 @@ Pièces à joindre si Apple les demande : capture de l'écran principal du Hub
 session `rtl_direct_session.log` du 2026-11-21 (sans identifiant d'appareil),
 lien vers les sources publiques.
 
-## 3. Texte de la demande (à coller)
+## 3. Texte de référence (version longue)
+
+Le formulaire limite la description à 2 000 caractères : c'est la version
+condensée du § 5 qui a été envoyée.
 
 > **App:** SDR Driver Hub (`com.belksiri.sdrdriverhub`), a **free** companion
 > app for **iPadOS** (iPad with an M-series chip), with one DriverKit driver,
@@ -107,3 +111,47 @@ lien vers les sources publiques.
 3. `HUB_DIST=1`, archive, `scripts/verify_bundle.sh --dist` : tous les
    contrôles, signatures comprises.
 4. Export App Store **local** ; téléversement seulement sur GO explicite.
+
+## 5. Envoi
+
+| Élément | Valeur |
+|---|---|
+| Date | 2026-11-24 |
+| Formulaire | developer.apple.com/contact/request/system-extension/ (compte de l'équipe `WVQH467NC8`) |
+| Identifiant de la demande | **`GZ4VQV28Y2`** |
+| Accusé de réception | page de confirmation : « Thank you for your submission. We'll review your request and contact you soon with a status update. Request ID: GZ4VQV28Y2 » ; aucun e-mail relevé à ce stade |
+| Statut | en attente de la réponse d'Apple |
+| Company / Product URL | https://github.com/belksiri/sdr-driver-hub |
+| Entitlement | DriverKit Entitlement |
+| Cases cochées | USB Transport ; UserClient Access |
+| USB Vendor ID | 3034 |
+| UserClient Bundle IDs | `com.belksiri.sdrdriverhub.rtlsdr-driver` |
+
+Le formulaire n'a pas de champ distinct pour `communicates-with-drivers` :
+l'accès des deux apps au pilote passe par la case *UserClient Access*
+(bundle ID du pilote) et par la description.
+
+Description envoyée, mot pour mot (1 806 caractères) :
+
+```text
+SDR Driver Hub (com.belksiri.sdrdriverhub) is a free iPadOS app (iPad with M-series chip), no in-app purchase or subscription, with one DriverKit driver: com.belksiri.sdrdriverhub.rtlsdr-driver.
+
+Purpose: a USB driver for RTL-SDR receivers (Realtek RTL2832U with R820T/R82xx tuners), which are receive-only radios. Our app Spectrum Analyzer One (com.belksiri.spectrum, same team) communicates directly with the driver through its user client to read IQ samples and display the spectrum. SDR Driver Hub does not need to stay open during reception.
+
+Requested:
+- Driver: com.apple.developer.driverkit and driverkit.transport.usb limited to idVendor 3034 (0x0BDA, Realtek). It matches only products 0x2838 and 0x2832.
+- SDR Driver Hub and Spectrum Analyzer One: driverkit.communicates-with-drivers, to open the user client of com.belksiri.sdrdriverhub.rtlsdr-driver. Please tell us if Spectrum Analyzer One needs anything more in App Store distribution.
+
+Vendor ID: we are not Realtek. RTL2832U receivers from many makers use Realtek's vendor ID 0x0BDA; there is no other ID to match them. The driver does not present itself as a Realtek product.
+
+Safety:
+- USB driver, receive only; no transmission.
+- No EEPROM write (control requests white-listed, EEPROM writes refused).
+- No firmware modification.
+- Unauthorized clients refused (only our team's apps with communicates-with-drivers); a second simultaneous client is refused.
+- No network server and no background audio in the App Store distribution; no network connection.
+
+Tested hardware: RTL2832U / R820T compatible receiver tested on a physical iPad Pro. Targeted: RTL-SDR Blog V3 and other RTL2832U/R82xx receivers.
+
+Source: includes librtlsdr (GPL-2.0-or-later); complete corresponding source: https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0
+```
