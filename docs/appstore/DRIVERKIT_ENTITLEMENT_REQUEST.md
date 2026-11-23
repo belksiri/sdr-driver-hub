@@ -1,7 +1,7 @@
 # Demande d'entitlements DriverKit — SDR Driver Hub 1.0.0
 
-**Préparée le 2026-11-23. NON ENVOYÉE.** L'envoi engage officiellement le
-compte développeur : il attend le GO explicite de Mounir.
+**Préparée le 2026-11-23 ; envoi autorisé par Mounir le 2026-11-24.** Le
+texte envoyé, sa date et l'accusé de réception sont consignés au § 5.
 
 Formulaire Apple : *Request a System Extension or DriverKit entitlement*
 (compte développeur › Contact › DriverKit). Le texte à coller est en anglais,
@@ -52,17 +52,18 @@ lien vers les sources publiques.
 
 ## 3. Texte de la demande (à coller)
 
-> **App:** SDR Driver Hub (`com.belksiri.sdrdriverhub`), a free companion app
-> for iPad, with one DriverKit driver,
-> `com.belksiri.sdrdriverhub.rtlsdr-driver`.
+> **App:** SDR Driver Hub (`com.belksiri.sdrdriverhub`), a **free** companion
+> app for **iPadOS** (iPad with an M-series chip), with one DriverKit driver,
+> `com.belksiri.sdrdriverhub.rtlsdr-driver`. No in-app purchase, no
+> subscription.
 >
 > **Purpose.** SDR Driver Hub installs a USB DriverKit driver for RTL-SDR
-> receivers (Realtek RTL2832U USB demodulator with R820T/R82xx tuners, such
-> as the RTL-SDR Blog V3). These are receive-only radio receivers. Our
-> analysis app, Spectrum Analyzer One (`com.belksiri.spectrum`, same team),
-> opens this driver directly through its user client to read the received
-> IQ samples and display the radio spectrum. SDR Driver Hub itself does not
-> need to keep running during reception, and contains no network server.
+> receivers (Realtek RTL2832U USB demodulator with R820T/R82xx tuners).
+> These are receive-only radio receivers. Our analysis app, Spectrum
+> Analyzer One (`com.belksiri.spectrum`, same team), communicates directly
+> with this driver through its user client to read the received IQ samples
+> and display the radio spectrum. SDR Driver Hub does not need to stay open
+> during reception.
 >
 > **Entitlements requested.**
 > - Driver: `com.apple.developer.driverkit`, and
@@ -73,24 +74,30 @@ lien vers les sources publiques.
 >   `com.apple.developer.driverkit.communicates-with-drivers`.
 >
 > **Vendor ID.** We are not Realtek. RTL2832U receivers are made by many
-> manufacturers under Realtek's vendor ID, and there is no other vendor ID to
-> match them. The driver does not identify itself as a Realtek product.
+> manufacturers under Realtek's vendor ID 0x0BDA, and there is no other
+> vendor ID to match them. The driver does not identify itself as a Realtek
+> product.
 >
 > **Safety and scope.**
-> - Receive only: the driver configures the tuner and reads samples; there is
->   no transmit function (the hardware cannot transmit).
-> - The driver never writes the device EEPROM and never modifies firmware;
->   control requests are checked against a white-list, and EEPROM writes are
->   refused.
-> - The driver accepts only clients signed by our team with
->   `communicates-with-drivers`, and only one client at a time.
-> - USB access is limited to vendor 0x0BDA.
+> - USB driver, receive only: it configures the tuner and reads samples.
+>   There is no transmission (the hardware cannot transmit).
+> - No EEPROM write: control requests are checked against a white-list and
+>   EEPROM writes are refused.
+> - No firmware modification.
+> - The driver refuses unauthorized clients (only apps signed by our team
+>   with `communicates-with-drivers` are accepted) and refuses a second
+>   simultaneous client.
+> - USB access is limited to vendor 0x0BDA, products 0x2838 and 0x2832.
+> - The App Store distribution contains no network server and no
+>   background audio keep-alive; the app makes no network connection.
 >
-> **Tested hardware.** iPad Pro 11-inch (M2) with an RTL2832U / R820T
-> receiver (USB 0x0BDA:0x2838).
+> **Tested hardware.** RTL2832U / R820T compatible receiver tested on a
+> physical iPad Pro. Targeted models include the RTL-SDR Blog V3 and other
+> RTL2832U/R82xx receivers.
 >
 > **Source.** The driver includes librtlsdr (GPL-2.0-or-later); the complete
-> source is public: <adresse du dépôt public, une fois confirmée>.
+> corresponding source is public:
+> https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0
 
 ## 4. Après l'accord
 

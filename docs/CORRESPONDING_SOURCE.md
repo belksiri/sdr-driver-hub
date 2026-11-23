@@ -32,8 +32,8 @@ local (journal, build, donnée d'appareil). Elle comprend :
 3. Garder chaque archive publiée au moins trois ans après la dernière
    distribution du binaire correspondant.
 
-`HUB_SOURCE_URL` vaut par défaut l'adresse publique du dépôt,
-<https://github.com/belksiri/sdr-driver-hub> : l'écran des licences affiche ce lien
+`HUB_SOURCE_URL` vaut par défaut l'adresse publique du tag de la version,
+<https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0> (page du tag de la version) : l'écran des licences affiche ce lien
 « Code source ». Chaque archive de sources d'une version distribuée y est
 déposée (étape 2 ci-dessus).
 
@@ -41,9 +41,9 @@ déposée (étape 2 ci-dessus).
 
 1. Les commits de la version sont faits, l'arbre est propre.
 2. `HUB_SOURCE_URL` est fixé à l'adresse **publique exacte** du tag
-   (`https://github.com/<propriétaire confirmé>/sdr-driver-hub/tree/v1.0.0`),
-   dans `scripts/generate_project.rb`, puis commité. L'adresse n'est écrite
-   qu'une fois le propriétaire du dépôt confirmé ; elle n'est jamais devinée.
+   (`https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0`),
+   dans `scripts/generate_project.rb`, puis commité. Dépôt officiel confirmé
+   par Mounir le 2026-11-24 : `belksiri/sdr-driver-hub`.
 3. Le tag `v1.0.0` est posé sur ce commit, celui du paquet candidat.
 4. `scripts/make_corresponding_source.sh` produit l'archive depuis ce commit ;
    elle est reconstruite à part (voir ci-dessous), puis jointe à la release

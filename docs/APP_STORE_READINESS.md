@@ -29,10 +29,10 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
    de développement (aucun profil App Store pour l'app ni pour le pilote).
    Demande prête, **non envoyée** : [`appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md`](appstore/DRIVERKIT_ENTITLEMENT_REQUEST.md).
    Le vendeur 0x0BDA n'appartient pas à Belksiri.
-2. **Propriétaire du dépôt public** — le dépôt public existant est
-   `belksiri/sdr-driver-hub` ; le brief proposait `mboti/sdr-driver-hub`.
-   À confirmer avant de fixer `HUB_SOURCE_URL` sur le tag, de pousser le tag
-   `v1.0.0` et de publier l'archive des sources.
+2. **Dépôt public — levé.** Dépôt officiel `belksiri/sdr-driver-hub`
+   (confirmé le 2026-11-24) ; `HUB_SOURCE_URL` =
+   <https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0>, tag `v1.0.0` et
+   archive des sources publiés avec la release GitHub `v1.0.0`.
 3. **Licence GPL et App Store** — points **[AVIS JURIDIQUE]** restants
    (`LICENSE_INVENTORY.md`) : App Store et GPL-2.0 § 6, signature Apple,
    Spectrum Analyzer One client du pilote.

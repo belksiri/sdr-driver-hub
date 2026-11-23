@@ -147,6 +147,6 @@ changements de fréquence, Stop/Start répétés, HackRF.
   et sur Spectrum Analyzer One en tant que client d'un pilote qui contient
   librtlsdr.
 - **Sources correspondantes** : `HUB_SOURCE_URL` vaut
-  <https://github.com/belksiri/sdr-driver-hub> ; l'écran des licences affiche le lien.
+  <https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0> ; l'écran des licences affiche le lien.
 - **Arrière-plan** : la réception suit la vie de Spectrum Analyzer One ; le
   comportement quand iPadOS suspend l'app n'a pas été essayé [NT].
