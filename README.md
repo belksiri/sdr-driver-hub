@@ -67,4 +67,4 @@ lancement suivant le journal `Documents/hub_events.log`.
 ## État App Store
 
 `docs/APP_STORE_READINESS.md` et `docs/appstore/` (fiche, revue, demande
-d'entitlements DriverKit, politique de confidentialité).
+d'entitlements DriverKit) ; politique de confidentialité : `PRIVACY.md`.

@@ -42,7 +42,9 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
    confidentialité (à publier), les coordonnées de revue, la classification
    par âge, les droits sur le contenu, la disponibilité par pays, la
    localisation française et les captures iPad 13 pouces
-   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8).
+   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8 ;
+   préparés : localisation française § 9, politique `PRIVACY.md` et son URL
+   § 10, classification, droits et disponibilité § 11, captures § 12).
 5. **Version du pilote** — `1.0.0` alors que l'app porte un build daté : à
    confirmer au premier envoi à App Store Connect.
 

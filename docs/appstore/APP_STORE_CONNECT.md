@@ -28,14 +28,14 @@ aucune autorisation réseau local), aucun suivi, aucun SDK tiers,
 `PrivacyInfo.xcprivacy` vide (aucune donnée, aucune API à raison
 déclarée), journal en mémoire seulement, aucun fichier écrit.
 
-Politique de confidentialité : projet dans [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md),
-à publier à une adresse stable.
+Politique de confidentialité : [`PRIVACY.md`](../../PRIVACY.md) à la racine du
+dépôt, bilingue, publiée ; URL : § 10.
 
 ## 3. Adresses à fournir
 
 | Champ | État |
 |---|---|
-| URL de la politique de confidentialité | **à fournir** (publication de `PRIVACY_POLICY.md`) |
+| URL de la politique de confidentialité | https://github.com/belksiri/sdr-driver-hub/blob/master/PRIVACY.md — (§ 10) |
 | URL d'assistance | https://github.com/belksiri/sdr-driver-hub (dépôt public, tickets ouverts) |
 | URL marketing (facultative) | **à fournir** ou laisser vide |
 | Code source (dans l'app, écran Licences) | https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0 (`HUB_SOURCE_URL`) |
@@ -185,11 +185,132 @@ anglais (États-Unis), accès complet.
 | Prix | 0,00 dans 175 pays ou régions |
 | Confidentialité | « Données non collectées » enregistré ; **non publié** : URL de la politique manquante |
 | Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`), aucun build envoyé |
-| **URL de la politique de confidentialité** | **manquante** : publier `PRIVACY_POLICY.md` complété (`[DATE]`, `[CONTACT]`) à une adresse publique stable |
+| **URL de la politique de confidentialité** | **manquante** : compléter `PRIVACY.md` (`[DATE]`, `[CONTACT]`), le pousser, puis saisir l'URL du § 10 |
 | **Coordonnées de revue** (prénom, nom, téléphone, e-mail) | **à saisir par Mounir** ; tant qu'elles manquent, ASC refuse d'enregistrer les notes de revue (texte prêt, § 6, sans la phrase sur la vidéo) |
-| **Classification par âge** | questionnaire non rempli |
-| **Droits relatifs au contenu** | non renseignés |
-| **Disponibilité par pays** | non configurée (la Chine continentale exige des documents de conformité) |
-| **Localisation française** | non ajoutée (textes prêts, § 1 et § 4) |
+| **Classification par âge** | non saisie ; réponses prêtes (§ 11) |
+| **Droits relatifs au contenu** | non saisis ; réponse proposée « Non », à confirmer (§ 11) |
+| **Disponibilité par pays** | non saisie ; proposé : tous sauf la Chine continentale (§ 11) |
+| **Localisation française** | non saisie ; prête (§ 9) |
 | **Captures iPad 13 pouces** | aucune (§ 5) |
 | Build | aucun ; téléversement sur GO seulement |
+
+## 9. Localisation française (fr-FR), prête à saisir
+
+À ajouter dans App Store Connect : page de la version › menu de langue ›
+« Français ». Les champs « Informations sur l'app » (nom, sous-titre,
+URL de confidentialité) sont localisés à part, dans « Informations sur
+l'app » › langue « Français ».
+
+| Champ | Valeur | Longueur |
+|---|---|---|
+| Nom | SDR Driver Hub | 14 / 30 |
+| Sous-titre | Pilote RTL-SDR pour iPad | 24 / 30 |
+| URL de la politique de confidentialité | même URL que l'anglais (page bilingue, § 10) | — |
+| Texte promotionnel | Activez le pilote RTL-SDR une fois, puis écoutez dans Spectrum Analyzer One : inutile de garder SDR Driver Hub ouvert. | 118 / 170 |
+| Description | texte **FR** du § 4, tel quel | < 4 000 |
+| Mots-clés | `RTL-SDR,SDR,RTL2832U,R820T,pilote,radio,récepteur,USB,clé,spectre,FM` | 68 / 100 |
+| URL d'assistance | https://github.com/belksiri/sdr-driver-hub | — |
+| URL marketing | vide | — |
+| Captures | les mêmes que l'anglais tant qu'il n'existe pas de captures en français (§ 12) | — |
+
+Les notes pour la revue et les coordonnées ne sont pas localisées.
+
+## 10. Publication de la politique de confidentialité
+
+- Fichier : [`PRIVACY.md`](../../PRIVACY.md), racine du dépôt, anglais puis
+  français sur la même page.
+- URL stable proposée :
+  **https://github.com/belksiri/sdr-driver-hub/blob/master/PRIVACY.md**
+  (page publique servie par GitHub, sans activer GitHub Pages ni créer de
+  site). Elle suit `master` : chaque correction poussée la met à jour, et la
+  date d'effet change avec elle.
+- Date d'effet : 24 novembre 2026 ; contact public : mboti.dev@gmail.com
+  (autorisé par Mounir le 2026-11-24).
+- Ensuite seulement : saisir l'URL dans « Confidentialité de l'app » ›
+  « Politique de confidentialité », puis (GO distinct) publier la
+  déclaration « Données non collectées ».
+
+## 11. Classification par âge, droits sur le contenu, disponibilité
+
+### Classification par âge (questionnaire d'« Informations sur l'app »)
+
+Toutes les réponses découlent du build App Store vérifié (`verify_bundle.sh
+--dist`) : pas de réseau, pas de compte, pas de navigateur intégré (le lien
+« Code source » ouvre le navigateur du système), aucun contenu affiché autre
+que l'état du récepteur et les licences.
+
+| Groupe | Question | Réponse |
+|---|---|---|
+| Contrôles intégrés | Contrôle parental | Non |
+| | Validation de l'âge | Non |
+| Capacités | Accès au Web sans restrictions | Non |
+| | Contenu généré par les utilisateurs | Non |
+| | Réseaux sociaux (et désactivation pour les moins de 13 ans) | Non |
+| | Messagerie et chat | Non |
+| | Position partagée | Non |
+| | Publicité | Non |
+| Thèmes matures | Vulgarité, horreur/peur, alcool-tabac-drogues, rencontres | Aucun |
+| Médical ou bien-être | Informations médicales, santé/bien-être | Aucun |
+| Sexualité ou nudité | les trois questions | Aucun |
+| Violence | les quatre questions | Aucun |
+| Activités basées sur le hasard | jeux de hasard, simulation, concours, coffres à butin | Non / Aucun |
+
+Résultat attendu : **4+** dans tous les pays.
+
+### Droits relatifs au contenu
+
+Question d'Apple : l'app contient-elle, affiche-t-elle ou consulte-t-elle du
+contenu tiers ? **Réponse décidée par Mounir le 2026-11-24 : Oui** (l'app
+dispose des droits nécessaires).
+
+Justification interne : SDR Driver Hub contient des composants logiciels
+tiers open source, notamment librtlsdr. Leur utilisation et leur
+distribution sont autorisées par leurs licences respectives. Les notices,
+licences et sources correspondantes sont publiées avec l'application.
+
+Cette réponse **ne signifie pas** que la compatibilité entre la GPL-2.0 et
+les conditions de l'App Store est juridiquement résolue : ce blocage reste
+ouvert (`docs/LICENSE_INVENTORY.md`) et interdit toujours la soumission
+finale.
+
+### Disponibilité
+
+- **Tous les pays et régions sauf la Chine continentale** pour la version
+  1.0.0 (décision de Mounir, 2026-11-24). Aucune déclaration AIGC : l'app
+  n'a aucune fonction d'IA générative. Aucun document ICP ni évaluation de
+  sécurité demandé pour cette version.
+- Raison : App Store Connect affiche, pour toute nouvelle app distribuée en
+  Chine continentale, deux exigences immédiates : un justificatif
+  d'**évaluation de sécurité** avec rapport, et une **déclaration de services
+  AIGC** avec informations de dépôt. Aucun de ces documents n'existe.
+- Précommande : non. Distribution publique (pas privée). Apple School
+  Manager / Business : laisser les valeurs par défaut.
+
+## 12. Captures : simulateur ou iPad réel
+
+Le simulateur iPad n'a ni DriverKit ni USB : le build simulateur ne contient
+même pas le pilote. Tout écran qui montre un pilote prêt, une réception ou un
+contenu IQ vérifié exige un vrai iPad à puce M avec un RTL-SDR ; le simuler
+serait faux.
+
+| Capture | Simulateur (honnête) | iPad réel requis |
+|---|---|---|
+| Écran principal « Aucun RTL-SDR détecté » | **oui**, faite : `build/appstore-captures/simulator/` (2064 × 2752, EN et FR, build `HUB_DIST=1`, iPad Pro 13 pouces M5, iOS 26.5) | — |
+| Licences open source (librtlsdr, GPL, lien Code source) | **oui** (écran statique) ; à prendre à la main dans Simulator, aucun outil de tap automatique installé | — |
+| À propos | **oui**, même méthode | — |
+| Écran principal « Prêt : Spectrum Analyzer One peut se connecter » | non | **oui** |
+| Écran principal pendant la réception par Spectrum Analyzer One | non | **oui** |
+| Vérification de la réception réussie (« Vérifié ») | non | **oui** |
+| Réglages › Apps › SDR Driver Hub › Pilotes | non (aucun pilote dans le simulateur) | **oui** |
+
+Réserves sur les captures du simulateur :
+
+- la barre d'état affiche la date en français même pour l'app en anglais :
+  pour des captures EN propres, régler aussi la langue du simulateur en
+  anglais (Réglages › Général › Langue) avant de les refaire ;
+- l'écran « Aucun RTL-SDR détecté » est un état réel mais d'erreur : utile en
+  complément, insuffisant seul pour montrer la fonction de l'app (règle 2.3
+  de la revue : les captures montrent l'app en usage).
+
+Minimum recommandé pour soumettre : les 4 captures « iPad réel requis »
+plus Licences.
