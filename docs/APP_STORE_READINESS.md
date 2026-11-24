@@ -40,9 +40,9 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
    Spectrum Analyzer One client du pilote.
 4. **Fiche App Store Connect** — métadonnées anglaises et françaises,
    politique de confidentialité, « Données non collectées », 4+, droits,
-   disponibilité (174 pays, sans la Chine continentale, sans Mac) enregistrés.
-   Restent : le téléphone des coordonnées de revue (puis les notes de revue)
-   et les captures iPad 13 pouces sur un vrai iPad
+   disponibilité (174 pays, sans la Chine continentale, sans Mac ni Apple
+   Vision Pro), coordonnées et notes de revue enregistrés. Restent les
+   captures iPad 13 pouces sur un vrai iPad
    ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8).
 5. **Version du pilote** — `1.0.0` alors que l'app porte un build daté : à
    confirmer au premier envoi à App Store Connect.

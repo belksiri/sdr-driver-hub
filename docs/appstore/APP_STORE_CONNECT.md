@@ -119,7 +119,7 @@ indisponible). À produire :
 
 ## 6. Informations pour App Review
 
-Coordonnées : à remplir par Mounir (non reproduites ici). Pas de compte de
+Coordonnées : enregistrées dans App Store Connect (non reproduites ici). Pas de compte de
 démonstration : l'app n'a pas de compte. **Une vidéo de démonstration est
 recommandée**, l'examen demandant un RTL-SDR.
 
@@ -150,7 +150,6 @@ recommandée**, l'examen demandant un RTL-SDR.
 > 5. Optionally, close SDR Driver Hub, open Spectrum Analyzer One and select
 >    RTL-SDR: the spectrum is received directly from the driver.
 >
-> A demonstration video is attached.
 
 ## 7. Checklist
 
@@ -160,7 +159,7 @@ recommandée**, l'examen demandant un RTL-SDR.
 - [x] Politique de confidentialité et URL d'assistance publiées
 - [x] Fiche créée (autorisation de Mounir), prix Gratuit, catégorie Utilitaires
 - [x] Confidentialité : « Aucune donnée collectée » (publiée)
-- [ ] Coordonnées de revue (téléphone manquant) et notes de revue
+- [x] Coordonnées de revue et notes de revue
 - [ ] Captures iPad 13 pouces (vidéo de démonstration facultative)
 - [ ] Archive `HUB_DIST=1` : `verify_bundle.sh --dist` entièrement vert, signatures comprises
 - [ ] Avis juridique sur la GPL et l'App Store (`docs/LICENSE_INVENTORY.md`)
@@ -189,9 +188,10 @@ principale anglais (États-Unis), accès complet.
 | Prix | 0,00 (gratuit) |
 | Disponibilité | **174 pays ou régions** ; **Chine continentale exclue** (aucune déclaration AIGC, aucun document chinois) |
 | Mac à puce Apple | **désactivé** (« Rendre cette app disponible » décoché, vérifié après rechargement) : l'app est destinée à iPadOS seulement, le pilote n'est pas validé sur macOS |
-| Apple Vision Pro | case cochée par défaut, mais App Store Connect indique que la version 1.0.0 n'est pas compatible et pas disponible sur Apple Vision Pro |
+| Apple Vision Pro | **désactivé** (« Rendre cette app disponible sur Apple Vision Pro » décoché, vérifié après rechargement) : le pilote DriverKit USB n'y est ni compatible ni validé |
 | Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`) ; aucun build envoyé |
-| **Coordonnées de revue** | **incomplètes uniquement à cause du téléphone.** Valeurs retenues : prénom Mounir, nom Boti, e-mail mboti.dev@gmail.com ; **téléphone à fournir par Mounir au format international**. Les quatre champs sont obligatoires : rien n'est enregistré tant que le téléphone manque. Ensuite : enregistrer les coordonnées et les notes de revue du § 6 (sans la phrase sur la vidéo) |
+| Coordonnées de revue | **enregistrées** et vérifiées après rechargement : Mounir Boti, mboti.dev@gmail.com, téléphone fourni par Mounir (non reproduit ici) |
+| Notes pour la revue | **enregistrées** (texte du § 6, 1 271 caractères), vérifiées après rechargement |
 | **Captures iPad 13 pouces** | **aucune chargée** ; brouillons du simulateur conservés hors dépôt (§ 12) |
 | **Build** | **aucun téléversé** ; téléversement et soumission sur GO seulement |
 | **Entitlements DriverKit** | demande **`GZ4VQV28Y2` en attente** de réponse d'Apple (`DRIVERKIT_ENTITLEMENT_REQUEST.md` § 5) ; aucune nouvelle demande |
