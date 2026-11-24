@@ -106,16 +106,11 @@ One : inutile de garder SDR Driver Hub ouvert. »
 
 ## 5. Captures iPad
 
-Format exigé : iPad 13 pouces (2064 × 2752 ou 2048 × 2732, portrait ou
-paysage). Aucune nouvelle capture ne peut être faite pour cette passe (iPad
-indisponible). À produire :
-
-1. Écran principal, pilote prêt (« Prêt : Spectrum Analyzer One peut se
-   connecter »).
-2. Écran principal pendant la réception par Spectrum Analyzer One.
-3. Vérification de la réception réussie (contenu IQ « Vérifié »).
-4. Licences open source (librtlsdr, GPL, lien Code source).
-5. Réglages › Apps › SDR Driver Hub › Pilotes (activation du pilote).
+Format : iPad 13 pouces, 2064 × 2752 (portrait). Décision de Mounir : les
+captures 1.0.0 sont produites **dans le simulateur uniquement**, sans iPad
+physique. Trois écrans réels du build App Store, en anglais et en français,
+chargés dans App Store Connect : voir § 12 et
+[`screenshots/v1.0.0/`](screenshots/v1.0.0/).
 
 ## 6. Informations pour App Review
 
@@ -160,7 +155,7 @@ recommandée**, l'examen demandant un RTL-SDR.
 - [x] Fiche créée (autorisation de Mounir), prix Gratuit, catégorie Utilitaires
 - [x] Confidentialité : « Aucune donnée collectée » (publiée)
 - [x] Coordonnées de revue et notes de revue
-- [ ] Captures iPad 13 pouces (vidéo de démonstration facultative)
+- [x] Captures iPad 13 pouces, anglais et français (simulateur ; vidéo de démonstration facultative, non fournie)
 - [ ] Archive `HUB_DIST=1` : `verify_bundle.sh --dist` entièrement vert, signatures comprises
 - [ ] Avis juridique sur la GPL et l'App Store (`docs/LICENSE_INVENTORY.md`)
 - [ ] Téléversement, puis soumission : **GO explicite uniquement**
@@ -192,7 +187,7 @@ principale anglais (États-Unis), accès complet.
 | Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`) ; aucun build envoyé |
 | Coordonnées de revue | **enregistrées** et vérifiées après rechargement : Mounir Boti, mboti.dev@gmail.com, téléphone fourni par Mounir (non reproduit ici) |
 | Notes pour la revue | **enregistrées** (texte du § 6, 1 271 caractères), vérifiées après rechargement |
-| **Captures iPad 13 pouces** | **aucune chargée** ; brouillons du simulateur conservés hors dépôt (§ 12) |
+| Captures iPad 13 pouces | **3 anglaises et 3 françaises chargées**, emplacement iPad 13 pouces, 2064 × 2752, ordre 1-2-3 vérifié après rechargement ; aucune ne représente une fausse réception matérielle (§ 12, `screenshots/v1.0.0/`) |
 | **Build** | **aucun téléversé** ; téléversement et soumission sur GO seulement |
 | **Entitlements DriverKit** | demande **`GZ4VQV28Y2` en attente** de réponse d'Apple (`DRIVERKIT_ENTITLEMENT_REQUEST.md` § 5) ; aucune nouvelle demande |
 | **GPL** | **non résolue** (`docs/LICENSE_INVENTORY.md`) : la soumission finale reste interdite |
@@ -214,7 +209,7 @@ l'app » › langue « Français ».
 | Mots-clés | `RTL-SDR,SDR,RTL2832U,R820T,pilote,radio,récepteur,USB,clé,spectre,FM` | 68 / 100 |
 | URL d'assistance | https://github.com/belksiri/sdr-driver-hub | — |
 | URL marketing | vide | — |
-| Captures | les mêmes que l'anglais tant qu'il n'existe pas de captures en français (§ 12) | — |
+| Captures | série française propre, chargée (§ 12) | — |
 
 Les notes pour la revue et les coordonnées ne sont pas localisées.
 
@@ -289,31 +284,40 @@ finale.
 - Précommande : non. Distribution publique (pas privée). Apple School
   Manager / Business : laisser les valeurs par défaut.
 
-## 12. Captures : simulateur ou iPad réel
+## 12. Captures App Store (simulateur)
 
 Le simulateur iPad n'a ni DriverKit ni USB : le build simulateur ne contient
-même pas le pilote. Tout écran qui montre un pilote prêt, une réception ou un
-contenu IQ vérifié exige un vrai iPad à puce M avec un RTL-SDR ; le simuler
-serait faux.
+pas le pilote. Les captures montrent donc les écrans réels du build App Store
+(`HUB_DIST=1`) dans cet état, sans pilote chargé, sans RTL-SDR, sans
+réception, sans débit IQ, sans vérification réussie et sans écran de
+Réglages fictif. Ni le code ni les images n'ont été modifiés pour simuler un
+état matériel.
 
-| Capture | Simulateur (honnête) | iPad réel requis |
-|---|---|---|
-| Écran principal « Aucun RTL-SDR détecté » | **oui**, faite : `build/appstore-captures/simulator/` (2064 × 2752, EN et FR, build `HUB_DIST=1`, iPad Pro 13 pouces M5, iOS 26.5) | — |
-| Licences open source (librtlsdr, GPL, lien Code source) | **oui** (écran statique) ; à prendre à la main dans Simulator, aucun outil de tap automatique installé | — |
-| À propos | **oui**, même méthode | — |
-| Écran principal « Prêt : Spectrum Analyzer One peut se connecter » | non | **oui** |
-| Écran principal pendant la réception par Spectrum Analyzer One | non | **oui** |
-| Vérification de la réception réussie (« Vérifié ») | non | **oui** |
-| Réglages › Apps › SDR Driver Hub › Pilotes | non (aucun pilote dans le simulateur) | **oui** |
+- Simulateur : iPad Pro 13 pouces (M5), iOS 26.5 ; langue et région du
+  simulateur en anglais (en_US) puis en français (fr_FR), date de la barre
+  d'état dans la langue de la série ; barre d'état 9:41 / 09:41, Wi-Fi,
+  batterie pleine ; aucune notification ni donnée personnelle.
+- Captures natives 2064 × 2752 ; compositions finales 2064 × 2752, PNG sRGB
+  sans transparence : fond, titre, sous-titre, capture réelle réduite
+  uniformément (ni étirée, ni recadrée, ni retouchée).
 
-Réserves sur les captures du simulateur :
+| Ordre | Écran réel | Titre EN | Titre FR |
+|---|---|---|---|
+| 1 | Écran principal, état « aucun RTL-SDR détecté » | RTL-SDR support for iPad | Le pilote RTL-SDR pour iPad |
+| 2 | À propos : version 1.0.0, matériel RTL-SDR, Spectrum Analyzer One ouvre le pilote directement | Connect Spectrum Analyzer One | Connectez Spectrum Analyzer One |
+| 3 | Licences open source : librtlsdr, GPL v2, lien Code source | Open-source and transparent | Open source et transparent |
 
-- la barre d'état affiche la date en français même pour l'app en anglais :
-  pour des captures EN propres, régler aussi la langue du simulateur en
-  anglais (Réglages › Général › Langue) avant de les refaire ;
-- l'écran « Aucun RTL-SDR détecté » est un état réel mais d'erreur : utile en
-  complément, insuffisant seul pour montrer la fonction de l'app (règle 2.3
-  de la revue : les captures montrent l'app en usage).
+Chargement App Store Connect (2026-11-24) : 3 images en anglais (États-Unis)
+et 3 en français, emplacement iPad 13 pouces, ordre 1-2-3 vérifié après
+rechargement. Aucun build téléversé, aucune soumission.
 
-Minimum recommandé pour soumettre : les 4 captures « iPad réel requis »
-plus Licences.
+Fichiers conservés : [`screenshots/v1.0.0/`](screenshots/v1.0.0/) (`final/`,
+`contact-sheet.png`, `MANIFEST.md`, `manifest.json` avec les SHA-256). Les
+captures brutes ne sont pas versionnées.
+
+Non produits, faute d'écran correspondant dans l'app : un écran de
+confidentialité (la mention « aucune donnée personnelle collectée » figure
+dans le sous-titre de la capture 3) et un écran « Compatibilité » distinct
+(le matériel pris en charge est dans À propos). Les écrans qui exigeraient
+du matériel réel (pilote prêt, réception, vérification réussie, Réglages ›
+Pilotes) ne sont pas représentés.

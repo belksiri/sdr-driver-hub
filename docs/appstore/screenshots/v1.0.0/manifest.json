@@ -1,0 +1,163 @@
+[
+  {
+    "file": "raw/en-01-main.png",
+    "kind": "capture native brute",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Écran principal : état réel « aucun RTL-SDR détecté » (simulateur sans USB ni DriverKit)",
+    "marketing_text": null,
+    "sha256": "8b21d320e31781b4c89aefe508767968017fb8711cbfae6ba7772462d7fb4287",
+    "in_repository": false
+  },
+  {
+    "file": "final/en-01.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Écran principal : état réel « aucun RTL-SDR détecté » (simulateur sans USB ni DriverKit)",
+    "marketing_text": {
+      "title": "RTL-SDR support for iPad",
+      "subtitle": "SDR Driver Hub installs a receive-only DriverKit driver for RTL2832U receivers and shows its status at a glance."
+    },
+    "sha256": "6ce545791189d7818a7de44af2de89c7029e2440549845066679a077062748c3",
+    "in_repository": true
+  },
+  {
+    "file": "raw/en-02-about.png",
+    "kind": "capture native brute",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "À propos : version 1.0.0, matériel pris en charge RTL-SDR, Spectrum Analyzer One ouvre le pilote directement",
+    "marketing_text": null,
+    "sha256": "0baadcc3622019e36cfe8f23a035b0f044b56a8e952c9275b6ad77632ba1d73a",
+    "in_repository": false
+  },
+  {
+    "file": "final/en-02.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "À propos : version 1.0.0, matériel pris en charge RTL-SDR, Spectrum Analyzer One ouvre le pilote directement",
+    "marketing_text": {
+      "title": "Connect Spectrum Analyzer One",
+      "subtitle": "Spectrum Analyzer One opens the driver directly. No need to keep SDR Driver Hub open while you listen."
+    },
+    "sha256": "9b21031ccf985ac17033232e1ec4004e373b81444b901b63623dff29792106d3",
+    "in_repository": true
+  },
+  {
+    "file": "raw/en-03-licenses.png",
+    "kind": "capture native brute",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Licences open source : librtlsdr GPL-2.0-or-later, texte de la GPL v2, lien Code source",
+    "marketing_text": null,
+    "sha256": "5aa77a23d7fce7cda3fcd4c4b324b43342e806580c94a5d7a5d23c1d4b0052d5",
+    "in_repository": false
+  },
+  {
+    "file": "final/en-03.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "en",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Licences open source : librtlsdr GPL-2.0-or-later, texte de la GPL v2, lien Code source",
+    "marketing_text": {
+      "title": "Open-source and transparent",
+      "subtitle": "Includes librtlsdr under the GNU GPL, with its complete source code. No personal data collected."
+    },
+    "sha256": "ce5ac950e5a20df0b4b0fd9b870c2a92439d466e50d1eb5c0a1813ccf40238a7",
+    "in_repository": true
+  },
+  {
+    "file": "raw/fr-01-main.png",
+    "kind": "capture native brute",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Écran principal : état réel « aucun RTL-SDR détecté » (simulateur sans USB ni DriverKit)",
+    "marketing_text": null,
+    "sha256": "264fe002fa8e14191308a7f440b93bf0b2dbb6310bec4003d68d5b7c39735ef6",
+    "in_repository": false
+  },
+  {
+    "file": "final/fr-01.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Écran principal : état réel « aucun RTL-SDR détecté » (simulateur sans USB ni DriverKit)",
+    "marketing_text": {
+      "title": "Le pilote RTL-SDR pour iPad",
+      "subtitle": "SDR Driver Hub installe un pilote DriverKit en réception seule pour les récepteurs RTL2832U et affiche son état d'un coup d'œil."
+    },
+    "sha256": "45b54fe87f8e9ee3fedf05e5608d5446980e815c7f36f4654a9c0b0047ecf5f2",
+    "in_repository": true
+  },
+  {
+    "file": "raw/fr-02-about.png",
+    "kind": "capture native brute",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "À propos : version 1.0.0, matériel pris en charge RTL-SDR, Spectrum Analyzer One ouvre le pilote directement",
+    "marketing_text": null,
+    "sha256": "0cbe61fc2a0fcac0e074b29d0e6a11be9400a1fdfcde35bb7097648972f6d5fa",
+    "in_repository": false
+  },
+  {
+    "file": "final/fr-02.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "À propos : version 1.0.0, matériel pris en charge RTL-SDR, Spectrum Analyzer One ouvre le pilote directement",
+    "marketing_text": {
+      "title": "Connectez Spectrum Analyzer One",
+      "subtitle": "Spectrum Analyzer One ouvre directement le pilote : inutile de garder SDR Driver Hub ouvert pendant l'écoute."
+    },
+    "sha256": "3b047b758fc0487344781977705712aad6b2aba48f8f82844beabbdcabe9e66a",
+    "in_repository": true
+  },
+  {
+    "file": "raw/fr-03-licenses.png",
+    "kind": "capture native brute",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Licences open source : librtlsdr GPL-2.0-or-later, texte de la GPL v2, lien Code source",
+    "marketing_text": null,
+    "sha256": "e918858fad6694e4af0e4d01ad12e71d6707b84ef0fb56c278474c9f651f9f88",
+    "in_repository": false
+  },
+  {
+    "file": "final/fr-03.png",
+    "kind": "composition marketing (capture réelle réduite uniformément, sans recadrage ni retouche)",
+    "lang": "fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "2064x2752",
+    "screen": "Licences open source : librtlsdr GPL-2.0-or-later, texte de la GPL v2, lien Code source",
+    "marketing_text": {
+      "title": "Open source et transparent",
+      "subtitle": "Inclut librtlsdr sous licence GNU GPL, avec son code source complet. Aucune donnée personnelle collectée."
+    },
+    "sha256": "6cffdd03b3c74e41215213bca1947c5304ebe7ffb3830ed660a2451af0a1ee3f",
+    "in_repository": true
+  },
+  {
+    "file": "contact-sheet.png",
+    "kind": "planche contact des 6 compositions",
+    "lang": "en+fr",
+    "simulator": "iPad Pro 13-inch (M5) simulator, iOS 26.5, build App Store HUB_DIST=1 (SDRDriverHub 1.0.0 (20261124.1036), sources = master 1689905, code identique au tag v1.0.0)",
+    "resolution": "1644x1448",
+    "screen": "—",
+    "marketing_text": null,
+    "sha256": "56dc7bd9ecaf4062ca718aba4738e6f76908bc233f0ac8d8e8622c69f08d0630",
+    "in_repository": true
+  }
+]

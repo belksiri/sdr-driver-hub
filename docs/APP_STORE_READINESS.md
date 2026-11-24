@@ -41,9 +41,9 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
 4. **Fiche App Store Connect** — métadonnées anglaises et françaises,
    politique de confidentialité, « Données non collectées », 4+, droits,
    disponibilité (174 pays, sans la Chine continentale, sans Mac ni Apple
-   Vision Pro), coordonnées et notes de revue enregistrés. Restent les
-   captures iPad 13 pouces sur un vrai iPad
-   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8).
+   Vision Pro), coordonnées et notes de revue, captures iPad 13 pouces
+   (3 EN, 3 FR, simulateur) enregistrés
+   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8, § 12).
 5. **Version du pilote** — `1.0.0` alors que l'app porte un build daté : à
    confirmer au premier envoi à App Store Connect.
 
