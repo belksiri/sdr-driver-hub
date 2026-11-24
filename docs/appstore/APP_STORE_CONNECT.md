@@ -31,13 +31,13 @@ déclarée), journal en mémoire seulement, aucun fichier écrit.
 Politique de confidentialité : [`PRIVACY.md`](../../PRIVACY.md) à la racine du
 dépôt, bilingue, publiée ; URL : § 10.
 
-## 3. Adresses à fournir
+## 3. Adresses
 
 | Champ | État |
 |---|---|
 | URL de la politique de confidentialité | https://github.com/belksiri/sdr-driver-hub/blob/master/PRIVACY.md — (§ 10) |
 | URL d'assistance | https://github.com/belksiri/sdr-driver-hub (dépôt public, tickets ouverts) |
-| URL marketing (facultative) | **à fournir** ou laisser vide |
+| URL marketing (facultative) | laissée vide |
 | Code source (dans l'app, écran Licences) | https://github.com/belksiri/sdr-driver-hub/tree/v1.0.0 (`HUB_SOURCE_URL`) |
 
 Aucune de ces adresses n'est inventée ici.
@@ -156,43 +156,46 @@ recommandée**, l'examen demandant un RTL-SDR.
 
 - [ ] Entitlements DriverKit de distribution accordés (`DRIVERKIT_ENTITLEMENT_REQUEST.md`)
 - [ ] Profils App Store de l'application et du pilote
-- [ ] Propriétaire du dépôt public confirmé ; `HUB_SOURCE_URL` = adresse du tag ; tag `v1.0.0` et archive des sources publiés
-- [ ] Politique de confidentialité et URL d'assistance publiées
-- [ ] Fiche créée (autorisation de Mounir), prix Gratuit, catégorie Utilitaires
-- [ ] Confidentialité : « Aucune donnée collectée »
-- [ ] Captures iPad 13 pouces et vidéo de démonstration
+- [x] Propriétaire du dépôt public confirmé ; `HUB_SOURCE_URL` = adresse du tag ; tag `v1.0.0` et archive des sources publiés
+- [x] Politique de confidentialité et URL d'assistance publiées
+- [x] Fiche créée (autorisation de Mounir), prix Gratuit, catégorie Utilitaires
+- [x] Confidentialité : « Aucune donnée collectée » (publiée)
+- [ ] Coordonnées de revue (téléphone manquant) et notes de revue
+- [ ] Captures iPad 13 pouces (vidéo de démonstration facultative)
 - [ ] Archive `HUB_DIST=1` : `verify_bundle.sh --dist` entièrement vert, signatures comprises
 - [ ] Avis juridique sur la GPL et l'App Store (`docs/LICENSE_INVENTORY.md`)
 - [ ] Téléversement, puis soumission : **GO explicite uniquement**
 - [ ] Après création de la fiche : relever `https://apps.apple.com/app/id<identifiant>` pour Spectrum Analyzer One (`HUB_APP_STORE_URL`, passe séparée)
 
-## 8. État de la fiche dans App Store Connect (2026-11-24)
+## 8. État de la fiche dans App Store Connect (relevé le 2026-11-24)
 
 Apple ID **6838519640** ; URL App Store prévue
 <https://apps.apple.com/app/id6838519640> (active seulement après
-publication). SKU `sdr-driver-hub`, plateforme iOS, langue principale
-anglais (États-Unis), accès complet.
+publication). SKU `sdr-driver-hub`, plateforme iOS (iPadOS), langue
+principale anglais (États-Unis), accès complet.
 
 | Champ | État |
 |---|---|
-| Nom, sous-titre EN | saisis (« SDR Driver Hub », « RTL-SDR driver for iPad ») |
+| Nom, sous-titre | EN « SDR Driver Hub », « RTL-SDR driver for iPad » ; FR « SDR Driver Hub », « Pilote RTL-SDR pour iPad » — enregistrés |
+| Texte promotionnel, description, mots-clés, URL d'assistance | **anglais et français enregistrés** (§ 4, § 9) |
 | Catégorie principale | Utilitaires |
 | Version | 1.0.0, publication **manuelle** après approbation |
-| Texte promotionnel, description, mots-clés EN | saisis (§ 4) |
-| URL d'assistance | https://github.com/belksiri/sdr-driver-hub |
-| Copyright | « 2026 Belksiri » (en-têtes des sources) |
+| Copyright | « 2026 Belksiri » |
 | Connexion requise | décochée (l'app n'a pas de compte) |
-| Prix | 0,00 dans 175 pays ou régions |
-| Confidentialité | « Données non collectées » enregistré ; **non publié** : URL de la politique manquante |
-| Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`), aucun build envoyé |
-| **URL de la politique de confidentialité** | **manquante** : compléter `PRIVACY.md` (`[DATE]`, `[CONTACT]`), le pousser, puis saisir l'URL du § 10 |
-| **Coordonnées de revue** (prénom, nom, téléphone, e-mail) | **à saisir par Mounir** ; tant qu'elles manquent, ASC refuse d'enregistrer les notes de revue (texte prêt, § 6, sans la phrase sur la vidéo) |
-| **Classification par âge** | non saisie ; réponses prêtes (§ 11) |
-| **Droits relatifs au contenu** | non saisis ; réponse proposée « Non », à confirmer (§ 11) |
-| **Disponibilité par pays** | non saisie ; proposé : tous sauf la Chine continentale (§ 11) |
-| **Localisation française** | non saisie ; prête (§ 9) |
-| **Captures iPad 13 pouces** | aucune (§ 5) |
-| Build | aucun ; téléversement sur GO seulement |
+| Politique de confidentialité | **publiée** : https://github.com/belksiri/sdr-driver-hub/blob/master/PRIVACY.md, saisie pour l'anglais et le français |
+| Confidentialité de l'app | **« Données non collectées », publiée** |
+| Classification par âge | **4+** (toutes réponses « Non » / « Aucun », § 11) ; équivalents régionaux affichés par Apple pour le Brésil, la Corée du Sud et le Vietnam |
+| Droits relatifs au contenu | **Oui** (justification et réserve GPL : § 11) |
+| Prix | 0,00 (gratuit) |
+| Disponibilité | **174 pays ou régions** ; **Chine continentale exclue** (aucune déclaration AIGC, aucun document chinois) |
+| Mac à puce Apple | **désactivé** (« Rendre cette app disponible » décoché, vérifié après rechargement) : l'app est destinée à iPadOS seulement, le pilote n'est pas validé sur macOS |
+| Apple Vision Pro | case cochée par défaut, mais App Store Connect indique que la version 1.0.0 n'est pas compatible et pas disponible sur Apple Vision Pro |
+| Chiffrement | déclaré par le build (`ITSAppUsesNonExemptEncryption = NO`) ; aucun build envoyé |
+| **Coordonnées de revue** | **incomplètes uniquement à cause du téléphone.** Valeurs retenues : prénom Mounir, nom Boti, e-mail mboti.dev@gmail.com ; **téléphone à fournir par Mounir au format international**. Les quatre champs sont obligatoires : rien n'est enregistré tant que le téléphone manque. Ensuite : enregistrer les coordonnées et les notes de revue du § 6 (sans la phrase sur la vidéo) |
+| **Captures iPad 13 pouces** | **aucune chargée** ; brouillons du simulateur conservés hors dépôt (§ 12) |
+| **Build** | **aucun téléversé** ; téléversement et soumission sur GO seulement |
+| **Entitlements DriverKit** | demande **`GZ4VQV28Y2` en attente** de réponse d'Apple (`DRIVERKIT_ENTITLEMENT_REQUEST.md` § 5) ; aucune nouvelle demande |
+| **GPL** | **non résolue** (`docs/LICENSE_INVENTORY.md`) : la soumission finale reste interdite |
 
 ## 9. Localisation française (fr-FR), prête à saisir
 

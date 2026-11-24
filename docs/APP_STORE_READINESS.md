@@ -38,13 +38,12 @@ achat intégré ni abonnement. Fiche, revue et demande d'entitlements :
 3. **Licence GPL et App Store** — points **[AVIS JURIDIQUE]** restants
    (`LICENSE_INVENTORY.md`) : App Store et GPL-2.0 § 6, signature Apple,
    Spectrum Analyzer One client du pilote.
-4. **Fiche App Store Connect** — créée ; restent l'URL de la politique de
-   confidentialité (à publier), les coordonnées de revue, la classification
-   par âge, les droits sur le contenu, la disponibilité par pays, la
-   localisation française et les captures iPad 13 pouces
-   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8 ;
-   préparés : localisation française § 9, politique `PRIVACY.md` et son URL
-   § 10, classification, droits et disponibilité § 11, captures § 12).
+4. **Fiche App Store Connect** — métadonnées anglaises et françaises,
+   politique de confidentialité, « Données non collectées », 4+, droits,
+   disponibilité (174 pays, sans la Chine continentale, sans Mac) enregistrés.
+   Restent : le téléphone des coordonnées de revue (puis les notes de revue)
+   et les captures iPad 13 pouces sur un vrai iPad
+   ([`appstore/APP_STORE_CONNECT.md`](appstore/APP_STORE_CONNECT.md) § 8).
 5. **Version du pilote** — `1.0.0` alors que l'app porte un build daté : à
    confirmer au premier envoi à App Store Connect.
 
